@@ -1,0 +1,14 @@
+set -tmpdir C:\Projects\DRC_Dev\AvtS6LX9MicroBoard_SW201_LwIP_Apps_14_4_01\xps\synthesis\xst_temp_dir\
+run
+-opt_mode speed
+-netlist_hierarchy as_optimized
+-opt_level 1
+-p xc6slx9csg324-2
+-top system_debug_module_wrapper
+-ifmt MIXED
+-ifn system_debug_module_wrapper_xst.prj
+-ofn ../implementation/system_debug_module_wrapper.ngc
+-hierarchy_separator /
+-iobuf NO
+-sd {../implementation}
+-vlgincdir {"C:\Projects\DRC_Dev\AvtS6LX9MicroBoard_SW201_LwIP_Apps_14_4_01\xps\pcores\" "C:\Xilinx\14.4\ISE_DS\EDK\hw\XilinxBFMinterface\pcores\" "C:\Xilinx\14.4\ISE_DS\EDK\hw\XilinxProcessorIPLib\pcores\" }

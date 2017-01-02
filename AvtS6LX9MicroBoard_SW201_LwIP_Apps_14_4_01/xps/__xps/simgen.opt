@@ -1,0 +1,1 @@
+ -p spartan6 -lang vhdl$(PROJECT_SEARCHPATHOPT) $(GLOBAL_SEARCHPATHOPT) -msg __xps/ise/xmsgprops.lst -s isim -X C:/Projects/DRC_Dev/AvtS6LX9MicroBoard_SW201_LwIP_Apps_14_4_01/xps/

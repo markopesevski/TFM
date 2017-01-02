@@ -1,0 +1,54 @@
+make -k all 
+libgen -hw ../xps_hw_platform/system.xml\
+	       \
+	       -pe microblaze_0 \
+	       -log libgen.log \
+	       system.mss
+libgen
+Xilinx EDK 14.4 Build EDK_P.49d
+Copyright (c) 1995-2012 Xilinx, Inc.  All rights reserved.
+
+Command Line: libgen -hw ../xps_hw_platform/system.xml -pe microblaze_0 -log
+libgen.log system.mss 
+
+
+Staging source files.
+Running DRCs.
+Runnning DRC for lwIP library... 
+
+
+
+lwIP can be used with the following EMAC peripherals found in your system:
+ethernet_mac
+
+MFS DRC ...
+
+Running generate.
+Little Endian system
+
+MFS generate ...
+
+Running post_generate.
+Running include - 'make -s include "COMPILER=mb-gcc" "ARCHIVER=mb-ar"
+"COMPILER_FLAGS=-mlittle-endian -mno-xl-soft-mul -mxl-barrel-shift
+-mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b  -O2 -c"
+"EXTRA_COMPILER_FLAGS=-g"'.
+
+Running libs - 'make -s libs "COMPILER=mb-gcc" "ARCHIVER=mb-ar"
+"COMPILER_FLAGS=-mlittle-endian -mno-xl-soft-mul -mxl-barrel-shift
+-mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b  -O2 -c"
+"EXTRA_COMPILER_FLAGS=-g"'.
+"Compiling common"
+"Compiling standalone";
+"Compiling lwIP"
+"Compiling lwIP adapter for Xilinx MAC"
+"Creating archive liblwip4.a"
+"Compiling tmrctr"
+"Compiling uartlite"
+"Compiling gpio"
+"Compiling emaclite"
+"Compiling bram"
+"Compiling intc"
+"Compiling cpu"
+Running execs_generate.
+'Finished building libraries'
