@@ -1,0 +1,12 @@
+*.o
+*.d
+*.metadata*
+**.metadata*
+*.metadata**
+**.metadata**
+*Debug*
+*.a
+*doxygen**
+**log*
+**Remote*
+*log
