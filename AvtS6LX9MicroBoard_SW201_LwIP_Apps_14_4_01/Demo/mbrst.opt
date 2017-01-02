@@ -1,0 +1,5 @@
+connect mb mdm                       
+rst 																 
+dow raw_apps.elf   									 
+run                                  
+exit																 
