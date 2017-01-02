@@ -1,7 +1,12 @@
 #include "lwip/inet.h"
 #include "lwip/ip_addr.h"
+#ifndef __PPC__
 #include "xil_printf.h"
+#endif
+#include "config_apps.h"
+#ifndef __arm__
 #include "xil_exception.h"
+#endif
 
 #define INCLUDE_RXPERF_SERVER  1
 #define INCLUDE_TXPERF_CLIENT  1

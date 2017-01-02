@@ -8,8 +8,8 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
--include subdir.mk
 -include src/subdir.mk
+-include subdir.mk
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -36,22 +36,22 @@ all: raw_apps.elf secondary-outputs
 
 # Tool invocations
 raw_apps.elf: $(OBJS) ../src/lscript.ld $(USER_OBJS)
-	@echo Building target: $@
-	@echo Invoking: MicroBlaze gcc linker
-	mb-gcc -Wl,--no-relax -Wl,-T -Wl,../src/lscript.ld -L../../standalone_bsp_0/microblaze_0/lib -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -o"raw_apps.elf" $(OBJS) $(USER_OBJS) $(LIBS)
-	@echo Finished building target: $@
+	@echo 'Building target: $@'
+	@echo 'Invoking: MicroBlaze gcc linker'
+	mb-gcc -Wl,-T -Wl,../src/lscript.ld -L../../standalone_bsp_0/microblaze_0/lib -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -o "raw_apps.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	@echo 'Finished building target: $@'
 	@echo ' '
 
 raw_apps.elf.size: raw_apps.elf
-	@echo Invoking: MicroBlaze Print Size
+	@echo 'Invoking: MicroBlaze Print Size'
 	mb-size raw_apps.elf  |tee "raw_apps.elf.size"
-	@echo Finished building: $@
+	@echo 'Finished building: $@'
 	@echo ' '
 
 raw_apps.elf.elfcheck: raw_apps.elf
-	@echo Invoking: Xilinx ELF Check
+	@echo 'Invoking: Xilinx ELF Check'
 	elfcheck raw_apps.elf -hw ../../xps_hw_platform/system.xml -pe microblaze_0  |tee "raw_apps.elf.elfcheck"
-	@echo Finished building: $@
+	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets

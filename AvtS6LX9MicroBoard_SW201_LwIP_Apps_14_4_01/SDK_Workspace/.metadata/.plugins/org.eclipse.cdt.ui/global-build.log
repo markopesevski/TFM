@@ -1,0 +1,128 @@
+21:59:29 **** Clean-only build of configuration Debug for project raw_apps ****
+make clean 
+rm -rf  ./src/dispatch.o ./src/echo.o ./src/http_response.o ./src/main.o ./src/platform.o ./src/platform_fs.o ./src/platform_gpio.o ./src/prot_malloc.o ./src/rxperf.o ./src/tftpserver.o ./src/tftputils.o ./src/txperf.o ./src/urxperf.o ./src/utxperf.o ./src/web_utils.o ./src/webserver.o  ./src/dispatch.d ./src/echo.d ./src/http_response.d ./src/main.d ./src/platform.d ./src/platform_fs.d ./src/platform_gpio.d ./src/prot_malloc.d ./src/rxperf.d ./src/tftpserver.d ./src/tftputils.d ./src/txperf.d ./src/urxperf.d ./src/utxperf.d ./src/web_utils.d ./src/webserver.d  raw_apps.elf.size  raw_apps.elf.elfcheck  raw_apps.elf
+ 
+21:59:30 **** Auto Build of configuration Debug for project raw_apps ****
+make all 
+Building file: ../src/dispatch.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/dispatch.d" -MT"src/dispatch.d" -o "src/dispatch.o" "../src/dispatch.c"
+../src/dispatch.c:6:25: fatal error: config_apps.h: No such file or directory
+src/subdir.mk:42: recipe for target 'src/dispatch.o' failed
+compilation terminated.
+make: *** [src/dispatch.o] Error 1
+21:59:50 **** Clean-only build of configuration Debug for project raw_apps ****
+make clean 
+rm -rf  ./src/dispatch.o ./src/main.o ./src/platform.o ./src/prot_malloc.o ./src/rxperf.o ./src/txperf.o ./src/urxperf.o ./src/utxperf.o  ./src/dispatch.d ./src/main.d ./src/platform.d ./src/prot_malloc.d ./src/rxperf.d ./src/txperf.d ./src/urxperf.d ./src/utxperf.d  raw_apps.elf.size  raw_apps.elf.elfcheck  raw_apps.elf
+ 
+21:59:51 **** Auto Build of configuration Debug for project raw_apps ****
+make all 
+Building file: ../src/dispatch.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/dispatch.d" -MT"src/dispatch.d" -o "src/dispatch.o" "../src/dispatch.c"
+Finished building: ../src/dispatch.c
+ 
+Building file: ../src/main.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/main.d" -MT"src/main.d" -o "src/main.o" "../src/main.c"
+Finished building: ../src/main.c
+ 
+Building file: ../src/platform.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/platform.d" -MT"src/platform.d" -o "src/platform.o" "../src/platform.c"
+Finished building: ../src/platform.c
+ 
+Building file: ../src/prot_malloc.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/prot_malloc.d" -MT"src/prot_malloc.d" -o "src/prot_malloc.o" "../src/prot_malloc.c"
+Finished building: ../src/prot_malloc.c
+ 
+Building file: ../src/rxperf.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/rxperf.d" -MT"src/rxperf.d" -o "src/rxperf.o" "../src/rxperf.c"
+Finished building: ../src/rxperf.c
+ 
+Building file: ../src/txperf.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/txperf.d" -MT"src/txperf.d" -o "src/txperf.o" "../src/txperf.c"
+Finished building: ../src/txperf.c
+ 
+Building file: ../src/urxperf.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/urxperf.d" -MT"src/urxperf.d" -o "src/urxperf.o" "../src/urxperf.c"
+Finished building: ../src/urxperf.c
+ 
+Building file: ../src/utxperf.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/utxperf.d" -MT"src/utxperf.d" -o "src/utxperf.o" "../src/utxperf.c"
+Finished building: ../src/utxperf.c
+ 
+Building target: raw_apps.elf
+Invoking: MicroBlaze gcc linker
+mb-gcc -Wl,-T -Wl,../src/lscript.ld -L../../standalone_bsp_0/microblaze_0/lib -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -o "raw_apps.elf"  ./src/dispatch.o ./src/main.o ./src/platform.o ./src/prot_malloc.o ./src/rxperf.o ./src/txperf.o ./src/urxperf.o ./src/utxperf.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group -Wl,--start-group,-lxil,-llwip4,-lgcc,-lc,--end-group
+./src/platform.o: In function `init_platform':
+/home/marko/git/TFM/AvtS6LX9MicroBoard_SW201_LwIP_Apps_14_4_01/SDK_Workspace/raw_apps/Debug/../src/platform.c:468: undefined reference to `platform_init_fs'
+collect2: ld returned 1 exit status
+makefile:39: recipe for target 'raw_apps.elf' failed
+make: *** [raw_apps.elf] Error 1
+22:00:08 **** Auto Build of configuration Debug for project raw_apps ****
+make all 
+Building file: ../src/platform.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/platform.d" -MT"src/platform.d" -o "src/platform.o" "../src/platform.c"
+Finished building: ../src/platform.c
+ 
+Building target: raw_apps.elf
+Invoking: MicroBlaze gcc linker
+mb-gcc -Wl,-T -Wl,../src/lscript.ld -L../../standalone_bsp_0/microblaze_0/lib -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -o "raw_apps.elf"  ./src/dispatch.o ./src/main.o ./src/platform.o ./src/prot_malloc.o ./src/rxperf.o ./src/txperf.o ./src/urxperf.o ./src/utxperf.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group -Wl,--start-group,-lxil,-llwip4,-lgcc,-lc,--end-group
+./src/platform.o: In function `init_platform':
+/home/marko/git/TFM/AvtS6LX9MicroBoard_SW201_LwIP_Apps_14_4_01/SDK_Workspace/raw_apps/Debug/../src/platform.c:440: undefined reference to `platform_init_fs'
+collect2: ld returned 1 exit status
+makefile:39: recipe for target 'raw_apps.elf' failed
+make: *** [raw_apps.elf] Error 1
+22:00:44 **** Auto Build of configuration Debug for project raw_apps ****
+make all 
+Building file: ../src/platform.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/platform.d" -MT"src/platform.d" -o "src/platform.o" "../src/platform.c"
+Finished building: ../src/platform.c
+ 
+Building target: raw_apps.elf
+Invoking: MicroBlaze gcc linker
+mb-gcc -Wl,-T -Wl,../src/lscript.ld -L../../standalone_bsp_0/microblaze_0/lib -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -o "raw_apps.elf"  ./src/dispatch.o ./src/main.o ./src/platform.o ./src/prot_malloc.o ./src/rxperf.o ./src/txperf.o ./src/urxperf.o ./src/utxperf.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group -Wl,--start-group,-lxil,-llwip4,-lgcc,-lc,--end-group
+./src/platform.o: In function `init_platform':
+makefile:39: recipe for target 'raw_apps.elf' failed
+/home/marko/git/TFM/AvtS6LX9MicroBoard_SW201_LwIP_Apps_14_4_01/SDK_Workspace/raw_apps/Debug/../src/platform.c:434: undefined reference to `platform_init_fs'
+collect2: ld returned 1 exit status
+make: *** [raw_apps.elf] Error 1
+22:01:08 **** Auto Build of configuration Debug for project raw_apps ****
+make all 
+Building file: ../src/platform.c
+Invoking: MicroBlaze gcc compiler
+mb-gcc -Wall -O0 -g3 -c -fmessage-length=0 -I../../standalone_bsp_0/microblaze_0/include -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -MMD -MP -MF"src/platform.d" -MT"src/platform.d" -o "src/platform.o" "../src/platform.c"
+Finished building: ../src/platform.c
+ 
+Building target: raw_apps.elf
+Invoking: MicroBlaze gcc linker
+mb-gcc -Wl,-T -Wl,../src/lscript.ld -L../../standalone_bsp_0/microblaze_0/lib -mlittle-endian -mxl-barrel-shift -mxl-pattern-compare -mno-xl-soft-div -mcpu=v8.40.b -mno-xl-soft-mul -Wl,--no-relax -o "raw_apps.elf"  ./src/dispatch.o ./src/main.o ./src/platform.o ./src/prot_malloc.o ./src/rxperf.o ./src/txperf.o ./src/urxperf.o ./src/utxperf.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group -Wl,--start-group,-lxil,-llwip4,-lgcc,-lc,--end-group
+Finished building target: raw_apps.elf
+ 
+Invoking: MicroBlaze Print Size
+mb-size raw_apps.elf  |tee "raw_apps.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+ 136552	   1716	2390668	2528936	 2696a8	raw_apps.elf
+Finished building: raw_apps.elf.size
+ 
+Invoking: Xilinx ELF Check
+elfcheck raw_apps.elf -hw ../../xps_hw_platform/system.xml -pe microblaze_0  |tee "raw_apps.elf.elfcheck"
+elfcheck
+Xilinx EDK 14.7 Build EDK_P.20131013
+Copyright (c) 1995-2012 Xilinx, Inc.  All rights reserved.
+
+Command Line: elfcheck -hw ../../xps_hw_platform/system.xml -pe microblaze_0
+raw_apps.elf 
+
+ELF file	: raw_apps.elf
+elfcheck passed.
+Finished building: raw_apps.elf.elfcheck
+ 

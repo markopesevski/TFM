@@ -1,17 +1,66 @@
+/*
+ * Copyright (c) 2007 Xilinx, Inc.  All rights reserved.
+ *
+ * Xilinx, Inc.
+ * XILINX IS PROVIDING THIS DESIGN, CODE, OR INFORMATION "AS IS" AS A
+ * COURTESY TO YOU.  BY PROVIDING THIS DESIGN, CODE, OR INFORMATION AS
+ * ONE POSSIBLE   IMPLEMENTATION OF THIS FEATURE, APPLICATION OR
+ * STANDARD, XILINX IS MAKING NO REPRESENTATION THAT THIS IMPLEMENTATION
+ * IS FREE FROM ANY CLAIMS OF INFRINGEMENT, AND YOU ARE RESPONSIBLE
+ * FOR OBTAINING ANY RIGHTS YOU MAY REQUIRE FOR YOUR IMPLEMENTATION.
+ * XILINX EXPRESSLY DISCLAIMS ANY WARRANTY WHATSOEVER WITH RESPECT TO
+ * THE ADEQUACY OF THE IMPLEMENTATION, INCLUDING BUT NOT LIMITED TO
+ * ANY WARRANTIES OR REPRESENTATIONS THAT THIS IMPLEMENTATION IS FREE
+ * FROM CLAIMS OF INFRINGEMENT, IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ */
 #include "arch/cc.h"
 #include "lwipopts.h"
 #include "platform.h"
 #include "platform_config.h"
+#if __MICROBLAZE__ || __PPC__
 #include "xenv_standalone.h"
 #include "xparameters.h"
 #include "xintc.h"
 #include "xil_exception.h"
+#endif
+#ifdef __MICROBLAZE__
 #include "mb_interface.h"
 #include "xtmrctr_l.h"
+#elif __PPC__
+#include "xexception_l.h"
+#include "xtime_l.h"
+#endif
+#ifdef __arm__
+#include "xil_types.h"
+#include "xil_io.h"
+#include "xil_assert.h"
+#include "xparameters.h"
+#include "stdio.h"
+#include "sleep.h"
+#include "xparameters.h"
+#include "xparameters_ps.h"	/* defines XPAR values */
+#include "xil_types.h"
+#include "xil_assert.h"
+#include "xil_io.h"
+#include "xil_exception.h"
+#include "xpseudo_asm.h"
+#include "xil_cache.h"
+#include "xil_printf.h"
+#include "xuartps.h"
+#include "xscugic.h"
+#include "xscutimer.h"
+#include "xemacps.h"		/* defines XEmacPs API */
+#endif
 
 int platform_init_fs();
 #if LWIP_DHCP==1
 volatile int dhcp_timoutcntr = 24;
+#endif
+
+#ifdef PLATFORM_STDOUT_IS_16550
+#include "xuartns550_l.h"
 #endif
 
 #include "lwip/tcp.h"
@@ -24,8 +73,10 @@ void dhcp_coarse_tmr();
 volatile int TcpFastTmrFlag = 0;
 volatile int TcpSlowTmrFlag = 0;
 
+#ifdef __MICROBLAZE__
 #if XPAR_INTC_0_HAS_FAST == 1
 static void xadapter_fasttimer_handler(void) __attribute__ ((fast_interrupt));
+#endif
 #endif
 
 #if __MICROBLAZE__ || __PPC__
@@ -413,6 +464,9 @@ init_platform()
 
 	platform_setup_interrupts();
 
+	/* initialize file system layer */
+	if (platform_init_fs() < 0)
+            return -1;
 #endif
 #ifdef __arm__
 

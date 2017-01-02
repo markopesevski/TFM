@@ -10,7 +10,6 @@ src/dispatch.d: ../src/dispatch.c \
  ../../standalone_bsp_0/microblaze_0/include/lwip/def.h \
  ../../standalone_bsp_0/microblaze_0/include/lwip/ip_addr.h \
  ../../standalone_bsp_0/microblaze_0/include/xil_printf.h \
- ../src/config_apps.h \
  ../../standalone_bsp_0/microblaze_0/include/xil_exception.h \
  ../../standalone_bsp_0/microblaze_0/include/xil_types.h
 
@@ -35,8 +34,6 @@ src/dispatch.d: ../src/dispatch.c \
 ../../standalone_bsp_0/microblaze_0/include/lwip/ip_addr.h:
 
 ../../standalone_bsp_0/microblaze_0/include/xil_printf.h:
-
-../src/config_apps.h:
 
 ../../standalone_bsp_0/microblaze_0/include/xil_exception.h:
 
