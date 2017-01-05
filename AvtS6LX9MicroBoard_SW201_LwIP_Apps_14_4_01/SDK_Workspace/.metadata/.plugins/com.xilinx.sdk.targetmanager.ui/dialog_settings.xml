@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<section name="Workbench">
-	<item value="bootloop" key="xps_hw_platform-microblaze_0-initElf"/>
-	<item value="C:\Projects\DRC_Dev\AvtS6LX9MicroBoard_SW201_LwIP_Apps_14_4_01\SDK_Workspace\xps_hw_platform\system.bit" key="xps_hw_platform-bitFile"/>
-	<item value="C:\Projects\DRC_Dev\AvtS6LX9MicroBoard_SW201_LwIP_Apps_14_4_01\SDK_Workspace\xps_hw_platform\system_bd.bmm" key="xps_hw_platform-bmmFile"/>
-</section>

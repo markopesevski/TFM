@@ -14,6 +14,7 @@
 #endif
 
 #define ETHERNET_MAC_ADDRESS	{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
+#define LEDS_ADDR XPAR_GPIO_1_BASEADDR
 
 #if LWIP_DHCP==1
 	extern volatile int dhcp_timoutcntr;
@@ -27,24 +28,29 @@ extern volatile int fastestTmrFlag;
 unsigned char mac_ethernet_address[] = ETHERNET_MAC_ADDRESS;
 struct netif *netif, server_netif;
 struct ip_addr ipaddr, netmask, gw; // gw = gateway
+unsigned char * leds = (unsigned char*) LEDS_ADDR;
 
 int main(void)
 {
+	*leds = 0b1111;
 	/* clears output */
 	xil_printf("%c[2J",27);
 
 	netif = &server_netif;
+	*leds = 0b1010;
 
 	if (init_platform() < 0)
 	{
 		xil_printf("ERROR initializing platform.\r\n");
 		return -1;
 	}
+	*leds = 0b0101;
 
 	xil_printf("\r\n");
 	xil_printf("----- SDAV - Marko Peshevski -----\r\n");
 
 	lwip_init();
+	*leds = 0b1010;
 
 	/* initliaze IP addresses to be used */
 	#if (LWIP_DHCP==0)
