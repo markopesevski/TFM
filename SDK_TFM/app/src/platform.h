@@ -44,11 +44,11 @@
 	void print_utxperf_app_header();
 	void print_urxperf_app_header();
 	void start_rxperf_application();
-	void start_txperf_application();
+	int start_txperf_application();
 	void start_utxperf_application();
 	void start_urxperf_application();
-	void transfer_rxperf_data();
-	void transfer_txperf_data();
+	int transfer_rxperf_data();
+	int transfer_txperf_data();
 	void transfer_utxperf_data();
 	void transfer_urxperf_data();
 	void print_ip(char *msg, struct ip_addr *ip);

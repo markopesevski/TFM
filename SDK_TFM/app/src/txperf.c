@@ -5,6 +5,7 @@
 #include "lwip/tcp.h"
 #include "lwipopts.h"
 #include "xil_printf.h"
+#include "platform.h"
 
 #if (USE_JUMBO_FRAMES==1)
 #define SEND_BUFSIZE (9000)
