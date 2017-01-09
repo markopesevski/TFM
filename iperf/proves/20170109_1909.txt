@@ -1,0 +1,23 @@
+D:\TFM\iperf>iperf -s -i 5 -p 5001
+------------------------------------------------------------
+Server listening on TCP port 5001
+TCP window size: 64.0 KByte (default)
+------------------------------------------------------------
+[220] local 192.168.1.130 port 5001 connected with 192.168.1.200 port 49154
+[ ID] Interval       Transfer     Bandwidth
+[220]  0.0- 5.0 sec  14.2 MBytes  23.8 Mbits/sec
+[220]  5.0-10.0 sec  14.3 MBytes  24.0 Mbits/sec
+[220] 10.0-15.0 sec  14.3 MBytes  24.0 Mbits/sec
+[220] 15.0-20.0 sec  14.3 MBytes  24.0 Mbits/sec
+[220] 20.0-25.0 sec  14.3 MBytes  24.0 Mbits/sec
+[220] 25.0-30.0 sec  14.3 MBytes  24.0 Mbits/sec
+[220] 30.0-35.0 sec  14.3 MBytes  24.0 Mbits/sec
+[220] 35.0-40.0 sec  14.3 MBytes  24.0 Mbits/sec
+[220] 40.0-45.0 sec  14.2 MBytes  23.7 Mbits/sec
+[220] 45.0-50.0 sec  14.3 MBytes  23.9 Mbits/sec
+[220] 50.0-55.0 sec  14.2 MBytes  23.9 Mbits/sec
+[220] 55.0-60.0 sec  14.3 MBytes  24.0 Mbits/sec
+[220] 60.0-65.0 sec  14.3 MBytes  24.0 Mbits/sec
+Waiting for server threads to complete. Interrupt again to force quit.
+[220] 65.0-70.0 sec  14.2 MBytes  23.9 Mbits/sec
+[220]  0.0-72.9 sec   208 MBytes  23.9 Mbits/sec

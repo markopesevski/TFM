@@ -1,0 +1,21 @@
+D:\TFM\iperf>iperf -c 192.168.1.200 -t 60 -i 5 -p 5001
+------------------------------------------------------------
+Client connecting to 192.168.1.200, TCP port 5001
+TCP window size: 64.0 KByte (default)
+------------------------------------------------------------
+[156] local 192.168.1.130 port 49350 connected with 192.168.1.200 port 5001
+[ ID] Interval       Transfer     Bandwidth
+[156]  0.0- 5.0 sec  12.6 MBytes  21.2 Mbits/sec
+[156]  5.0-10.0 sec  12.9 MBytes  21.6 Mbits/sec
+[156] 10.0-15.0 sec  13.3 MBytes  22.3 Mbits/sec
+[156] 15.0-20.0 sec  13.2 MBytes  22.1 Mbits/sec
+[156] 20.0-25.0 sec  12.8 MBytes  21.5 Mbits/sec
+[156] 25.0-30.0 sec  13.0 MBytes  21.8 Mbits/sec
+[156] 30.0-35.0 sec  13.5 MBytes  22.7 Mbits/sec
+[156] 35.0-40.0 sec  13.1 MBytes  22.1 Mbits/sec
+[156] 40.0-45.0 sec  13.6 MBytes  22.7 Mbits/sec
+[156] 45.0-50.0 sec  12.8 MBytes  21.5 Mbits/sec
+[156] 50.0-55.0 sec  13.1 MBytes  21.9 Mbits/sec
+[156] 55.0-60.0 sec  13.0 MBytes  21.8 Mbits/sec
+server sent unexpected data failed
+[156]  0.0-60.0 sec   157 MBytes  21.9 Mbits/sec
