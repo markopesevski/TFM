@@ -123,7 +123,6 @@ print_txperf_app_header()
 {
         xil_printf("%20s %6s %s", "txperf client",
                         "N/A",
-                        "$ iperf3 -s <Host IP> -i 5 -w 64k with host located at ");
+                        "$ iperf3 -s <Host IP> -i 5 -w 64k | with host located at ");
         print_ip("IP: ", &(server_ip));
-        xil_printf(")\r\n");
 }
