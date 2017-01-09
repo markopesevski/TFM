@@ -32,25 +32,26 @@ unsigned char * leds = (unsigned char*) LEDS_ADDR;
 
 int main(void)
 {
-	*leds = 0b1111;
+	*leds = 0b0000;
 	/* clears output */
 	xil_printf("%c[2J",27);
+	*leds = 0b0001;
 
 	netif = &server_netif;
-	*leds = 0b1010;
+	*leds = 0b0010;
 
 	if (init_platform() < 0)
 	{
 		xil_printf("ERROR initializing platform.\r\n");
 		return -1;
 	}
-	*leds = 0b0101;
+	*leds = 0b0011;
 
 	xil_printf("\r\n");
 	xil_printf("----- SDAV - Marko Peshevski -----\r\n");
 
 	lwip_init();
-	*leds = 0b1010;
+	*leds = 0b0100;
 
 	/* initliaze IP addresses to be used */
 	#if (LWIP_DHCP==0)
@@ -71,14 +72,19 @@ int main(void)
 		return -1;
 	}
 
+	*leds = 0b0101;
+
 	/* set the default network interface (ethernet) */
 	netif_set_default(netif);
+	*leds = 0b0110;
 
 	/* specify that the network if is up */
 	netif_set_up(netif);
+	*leds = 0b0111;
 
 	/* now enable interrupts */
 	platform_enable_interrupts();
+	*leds = 0b1000;
 
 	#if (LWIP_DHCP==1)
 		/* Create a new DHCP client for this interface.
@@ -127,8 +133,10 @@ int main(void)
 	/* start the application (web server) */
 	xil_printf("Starting web app... ");
 	start_applications();
+	*leds = 0b1001;
 	xil_printf("Web app started\r\n");
 	print_headers(&(netif->ip_addr));
+	*leds = 0b1010;
 
 	while (1)
 	{
