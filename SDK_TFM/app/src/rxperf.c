@@ -81,5 +81,5 @@ print_rxperf_app_header()
 {
     xil_printf("%20s %6d %s\r\n", "rxperf server",
                         rxperf_port,
-                        "$ iperf -c <board ip> -i 5 -t 100");
+                        "$ iperf3 -c <Board IP> -i 5 -t 100 -p 5001");
 }

@@ -17,6 +17,8 @@ static struct tcp_pcb *connected_pcb = NULL;
 volatile extern int TxPerfConnMonCntr;
 static char send_buf[SEND_BUFSIZE];
 
+static struct ip_addr server_ip;
+
 static unsigned txperf_client_connected = 0;
 int
 transfer_txperf_data()
@@ -97,7 +99,8 @@ start_txperf_application()
 	}
 
 	/* connect to iperf server */
-	IP4_ADDR(&ipaddr,  192, 168,   1, 100);		/* iperf server address */
+	IP4_ADDR(&ipaddr,  192, 168,   1, 130);		/* iperf server address */
+	server_ip = ipaddr;
 
 	port = 5001;					/* iperf default port */
 	err = tcp_connect(pcb, &ipaddr, port, txperf_connected_callback);
@@ -118,7 +121,9 @@ start_txperf_application()
 void
 print_txperf_app_header()
 {
-        xil_printf("%20s %6s %s\r\n", "txperf client",
+        xil_printf("%20s %6s %s", "txperf client",
                         "N/A",
-                        "$ iperf -s -i 5 -w 64k (on host with IP 192.168.1.100)");
+                        "$ iperf3 -s <Host IP> -i 5 -w 64k with host located at ");
+        print_ip("IP: ", &(server_ip));
+        xil_printf(")\r\n");
 }
