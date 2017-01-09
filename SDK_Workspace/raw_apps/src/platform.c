@@ -84,7 +84,7 @@ void platform_enable_interrupts()
 {
 	//microblaze_enable_exceptions();
 	//microblaze_enable_interrupts();
-	//Xil_ExceptionEnable();
+	Xil_ExceptionEnable();
 }
 
 static XIntc intc;
