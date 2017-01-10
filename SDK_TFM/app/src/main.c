@@ -10,6 +10,9 @@
 #define DEFAULT_PORT			5001
 #define LEDS_ADDR XPAR_GPIO_1_BASEADDR
 
+//#define READ_PHY_REGISTERS
+#define PLAY_WITH_PHY_LEDS
+
 /* the mac address of the board. this should be unique per board */
 unsigned char mac_ethernet_address[] = ETHERNET_MAC_ADDRESS;
 unsigned char ip_address[] = IP_ADDRESS;
@@ -26,6 +29,8 @@ void sent_callback(void);
 int main(void)
 {
 	u8 i = 0;
+	u32 j = 10000000;
+	u16 leds_phy_reg = 0;
 	*leds = 0b0000;
 	/* clears output */
 	xil_printf("%c[2J",27);
@@ -62,18 +67,88 @@ int main(void)
 	}
 	xil_printf("OK!\r\n");
 
-	xil_printf("Reading PHY registers:\r\n");
-	for(i = 0; i < 32; i++)
-	{
-			if (XEmacLite_PhyRead(&emaclite_inst, 0x1F, i, &data) == XST_SUCCESS)
+	#ifdef READ_PHY_REGISTERS
+		xil_printf("Reading PHY registers:\r\n");
+		for(i = 0; i < 32; i++)
+		{
+				if (XEmacLite_PhyRead(&emaclite_inst, 0x1F, i, &data) == XST_SUCCESS)
+				{
+					xil_printf("\tRegister address 0x%02x from PHY 0x%02x: 0x%04x\r\n", i, 0x1F, data);
+				}
+				else
+				{
+					xil_printf("\tXST_DEVICE_BUSY\r\n");
+					return 0;
+				}
+		}
+	#endif
+
+	#ifdef PLAY_WITH_PHY_LEDS
+		while(1)
+		{
+			xil_printf("Playing with LEDs...\r\n");
+			if (XEmacLite_PhyRead(&emaclite_inst, 0x1F, 0x18, &leds_phy_reg) == XST_SUCCESS)
 			{
-				xil_printf("\tRegister address 0x%02x from PHY 0x%02x: 0x%04x\r\n", i, 0x1F, data);
+				xil_printf("\tRegister address 0x%02x from PHY 0x%02x: 0x%04x\r\n", 0x18, 0x1F, leds_phy_reg);
 			}
 			else
 			{
 				xil_printf("\tXST_DEVICE_BUSY\r\n");
+				return 0;
 			}
-	}
+
+			leds_phy_reg |= 0b110000;
+			leds_phy_reg &= ~0b110;
+			xil_printf("\tWriting register 0x%02x on PHY 0x%02x: 0x%04x... ", 0x18, 0x1F, leds_phy_reg);
+			if (XEmacLite_PhyWrite(&emaclite_inst, 0x1F, 0x18, leds_phy_reg) == XST_SUCCESS)
+			{
+				xil_printf("OK!\r\n");
+			}
+			else
+			{
+				xil_printf("\tXST_DEVICE_BUSY\r\n");
+				return 0;
+			}
+
+			leds_phy_reg |= 0b10;
+			xil_printf("\tWriting register 0x%02x on PHY 0x%02x: 0x%04x... ", 0x18, 0x1F, leds_phy_reg);
+			if (XEmacLite_PhyWrite(&emaclite_inst, 0x1F, 0x18, leds_phy_reg) == XST_SUCCESS)
+			{
+				xil_printf("OK!\r\n");
+			}
+			else
+			{
+				xil_printf("\tXST_DEVICE_BUSY\r\n");
+				return 0;
+			}
+
+			leds_phy_reg |= 0b100;
+			leds_phy_reg &= ~0b010;
+			xil_printf("\tWriting register 0x%02x on PHY 0x%02x: 0x%04x... ", 0x18, 0x1F, leds_phy_reg);
+			if (XEmacLite_PhyWrite(&emaclite_inst, 0x1F, 0x18, leds_phy_reg) == XST_SUCCESS)
+			{
+				xil_printf("OK!\r\n");
+			}
+			else
+			{
+				xil_printf("\tXST_DEVICE_BUSY\r\n");
+				return 0;
+			}
+
+			leds_phy_reg |= 0b010;
+			xil_printf("\tWriting register 0x%02x on PHY 0x%02x: 0x%04x... ", 0x18, 0x1F, leds_phy_reg);
+			if (XEmacLite_PhyWrite(&emaclite_inst, 0x1F, 0x18, leds_phy_reg) == XST_SUCCESS)
+			{
+				xil_printf("OK!\r\n");
+			}
+			else
+			{
+				xil_printf("\tXST_DEVICE_BUSY\r\n");
+				return 0;
+			}
+		}
+	#endif
+
 
 	while (1)
 	{
