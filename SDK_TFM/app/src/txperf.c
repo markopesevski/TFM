@@ -16,12 +16,10 @@
 static struct tcp_pcb *connected_pcb = NULL;
 volatile extern int TxPerfConnMonCntr;
 static char send_buf[SEND_BUFSIZE];
-
 static struct ip_addr server_ip;
-
 static unsigned txperf_client_connected = 0;
-int
-transfer_txperf_data()
+
+int transfer_txperf_data()
 {
 	int copy = 0;
 	err_t err;
@@ -58,15 +56,13 @@ transfer_txperf_data()
 	return 0;
 }
 
-static err_t
-txperf_sent_callback(void *arg, struct tcp_pcb *tpcb, u16_t len)
+static err_t txperf_sent_callback(void *arg, struct tcp_pcb *tpcb, u16_t len)
 {
 	TxPerfConnMonCntr = 0;
 	return ERR_OK;
 }
 
-static err_t
-txperf_connected_callback(void *arg, struct tcp_pcb *tpcb, err_t err)
+static err_t txperf_connected_callback(void *arg, struct tcp_pcb *tpcb, err_t err)
 {
 	xil_printf("txperf: Connected to iperf server\r\n");
     txperf_client_connected = 1;
@@ -82,8 +78,7 @@ txperf_connected_callback(void *arg, struct tcp_pcb *tpcb, err_t err)
 	return ERR_OK;
 }
 
-int
-start_txperf_application()
+int start_txperf_application()
 {
 	struct tcp_pcb *pcb;
 	struct ip_addr ipaddr;
@@ -118,8 +113,7 @@ start_txperf_application()
 	return 0;
 }
 
-void
-print_txperf_app_header()
+void print_txperf_app_header()
 {
         xil_printf("%20s %6s %s", "txperf client",
                         "N/A",

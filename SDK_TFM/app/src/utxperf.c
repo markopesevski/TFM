@@ -13,8 +13,7 @@ static struct pbuf *pbuf_to_be_sent = NULL;
 #define SEND_BUFSIZE (1450)
 static char send_buf[SEND_BUFSIZE];
 
-int
-transfer_utxperf_data()
+int transfer_utxperf_data()
 {
 	err_t err;
 	struct udp_pcb *pcb = connected_pcb;
@@ -47,8 +46,7 @@ transfer_utxperf_data()
 	return 0;
 }
 
-int
-start_utxperf_application()
+int start_utxperf_application()
 {
 	struct udp_pcb *pcb;
 	struct ip_addr ipaddr;
@@ -69,7 +67,7 @@ start_utxperf_application()
 	}
 
 	/* connect to iperf server */
-	IP4_ADDR(&ipaddr,  192, 168,   1, 100);		/* iperf server address */
+	IP4_ADDR(&ipaddr,  192, 168,   1, 130);		/* iperf server address */
 	port = utxperf_port;                            /* iperf default port */
 	err = udp_connect(pcb, &ipaddr, port);
 	if (err != ERR_OK)
@@ -83,11 +81,10 @@ start_utxperf_application()
 	return 0;
 }
 
-void
-print_utxperf_app_header()
+void print_utxperf_app_header()
 {
         xil_printf("%20s %6s %10s %s\r\n", "utxperf client",
                         "N/A",
                         txperf_client_connected ? "CONNECTED" : "CONNECTING",
-                        "$ iperf -u -s -i 5 (on host with IP 192.168.1.100)");
+                        "$ iperf -u -s -i 5 (on host with IP 192.168.1.130)");
 }

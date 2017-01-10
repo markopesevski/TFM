@@ -14,8 +14,8 @@
 	#include "lwip/ip_addr.h"
 	#include "xil_printf.h"
 
-	#define INCLUDE_RXPERF_SERVER  1
-	#define INCLUDE_TXPERF_CLIENT  1
+	#define INCLUDE_RXPERF_SERVER  0
+	#define INCLUDE_TXPERF_CLIENT  0
 	#define INCLUDE_TXUPERF_CLIENT 0
 	#define INCLUDE_RXUPERF_CLIENT 0
 
