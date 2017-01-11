@@ -4,32 +4,65 @@
 #include "xemaclite.h"
 
 #define ETHERNET_MAC_ADDRESS	{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
-#define IP_ADDRESS				{192, 168, 1, 200}
+#define SOURCE_IP_ADDRESS		{192, 168, 1, 200}
+#define DESTINATION_IP_ADDRESS	{192, 168, 1, 130}
 #define NET_MASK				{255, 255, 255, 0}
 #define GW_ADDRESS				{192, 168, 1, 1}
 #define DEFAULT_PORT			5001
 #define LEDS_ADDR XPAR_GPIO_1_BASEADDR
-#define PHY_ADDRESS 0x1F
+/* this number is not magic, reading the datasheet: PHYAD are 5 bits set on PCB to be 0b11111 = 0x1F  */
+	#define PHY_ADDRESS 0x1F
 #define LEDS_REGISTER 0x18
 #define BMCR_REGISTER 0x00
 
 //#define READ_PHY_REGISTERS
 //#define PLAY_WITH_PHY_LEDS
 //#define CHECK_LEDS
-#define CHECK_LOOPBACK_IS_DISABLED
+//#define CHECK_LOOPBACK_IS_DISABLED
+#define GENERATE_ICMP_PING_REQUEST
+//#define SEND_ICMP_PING_TO_PC
 
 /* the mac address of the board. this should be unique per board */
-unsigned char mac_ethernet_address[] = ETHERNET_MAC_ADDRESS;
-unsigned char ip_address[] = IP_ADDRESS;
-unsigned char * board_leds = (unsigned char*) LEDS_ADDR;
+u8 mac_ethernet_address[] = ETHERNET_MAC_ADDRESS;
+u8 source_ip_address[] = SOURCE_IP_ADDRESS;
+u8 destination_ip_address[] = DESTINATION_IP_ADDRESS;
+u8 * board_leds = (u8*) LEDS_ADDR;
 XEmacLite emaclite_inst;
 u8 buffer[2048] = {'\0'};
 u16 packetlen = 0;
 u16 data = 0;
 
+typedef struct ip_frame_t
+{
+	u8 version_header_length;
+	u8 type_of_service;
+	u16 total_length;
+	u16 identification;
+	u16 flags_offset;
+	u8 ttl;
+	u8 protocol;
+	u16 header_checksum;
+	u32 source_ip;
+	u32 destination_ip;
+	u8 * payload_data;
+} ip_frame_t;
+
+typedef struct icmp_frame_t
+{
+	u16 total_length;
+	u8 type_of_message;
+	u8 code;
+	u16 header_checksum;
+	u32 header_data;
+	u8 * payload_data;
+} icmp_frame_t;
+
 void print_mac_address(u8 * addr);
 void recv_callback(void);
 void sent_callback(void);
+u16 calculate_header_checksum_ip(ip_frame_t packet);
+u32 convert_ip_address(u8 * ip_array);
+u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length);
 
 int main(void)
 {
@@ -38,6 +71,17 @@ int main(void)
 	#endif
 	#ifdef PLAY_WITH_PHY_LEDS
 		u16 leds_phy_reg = 0;
+	#endif
+	#ifdef SEND_ICMP_PING_TO_PC
+		ip_frame_t ip_frame;
+		icmp_frame_t icmp_frame;
+		u8 * ethernet_frame;
+	#endif
+	#ifdef GENERATE_ICMP_PING_REQUEST
+		ip_frame_t ip_frame;
+		icmp_frame_t icmp_frame;
+		u8 * ethernet_frame;
+		u16 i = 0;
 	#endif
 
 	/* turn off board leds */
@@ -204,6 +248,61 @@ int main(void)
 		}
 	#endif
 
+	#ifdef GENERATE_ICMP_PING_REQUEST
+		icmp_frame.total_length =	sizeof(icmp_frame.type_of_message) +
+									sizeof(icmp_frame.code) +
+									sizeof(icmp_frame.header_checksum) +
+									sizeof(icmp_frame.header_data) +
+									0 * sizeof(icmp_frame.payload_data); /* 0 stands for payload data length */
+
+		icmp_frame.type_of_message = 0x08; /* echo request */
+		icmp_frame.code = 0x00;
+		icmp_frame.header_data = (0x00 << 16) | (0x00 << 16); /* identifier [31:16] | sequence number [15:0] */
+		icmp_frame.header_checksum = calculate_header_checksum_icmp(icmp_frame, 0);
+
+		ip_frame.total_length = 	sizeof(ip_frame.version_header_length) +
+									sizeof(ip_frame.type_of_service) +
+									sizeof(ip_frame.total_length) +
+									sizeof(ip_frame.identification) +
+									sizeof(ip_frame.flags_offset) +
+									sizeof(ip_frame.ttl) +
+									sizeof(ip_frame.protocol) +
+									sizeof(ip_frame.header_checksum) +
+									sizeof(ip_frame.source_ip) +
+									sizeof(ip_frame.destination_ip) +
+									icmp_frame.total_length * sizeof(ip_frame.payload_data); /* icmp packet is payload, so stands for payload data length */
+		ip_frame.version_header_length = (0b0100 << 4) | (0b0101); /* IP version 4 and internet header length 5 32-bit words = 20 bytes */
+		ip_frame.type_of_service = 0x00; /* Differentiated Services Code Point (RFC2474) and Explicit Congestion Notification (RFC3168) */
+		ip_frame.identification = 0x0000;
+		ip_frame.flags_offset = (0b010 << 13) | 0b0000000000000; /* [15] reserved 0, [14] Don't Fragment, [13] More Fragments, [12:0] fragment offset */
+		ip_frame.ttl = 0xFF;
+		ip_frame.protocol = 0x01; /* 0x01 means ICMP (RFC790) */
+		ip_frame.source_ip = convert_ip_address(source_ip_address);
+		ip_frame.destination_ip = convert_ip_address(destination_ip_address);
+		ip_frame.payload_data = (u8 *) &icmp_frame;
+		ip_frame.header_checksum = calculate_header_checksum_ip(ip_frame);
+		ethernet_frame = (u8 *) &ip_frame;
+
+		//for(i = 0; i < ip_frame.total_length; i=i+2)
+		for(i = 0; i < ip_frame.total_length; i++)
+		{
+			//xil_printf("0x%02x/0x%02x: 0x%04x\r\n", i, ip_frame.total_length, (ethernet_frame[i] << 8)|ethernet_frame[i+1]);
+			xil_printf("0x%02x\r\n", ethernet_frame[i]);
+		}
+	#endif
+	#ifdef SEND_ICMP_PING_TO_PC
+		xil_printf("Sending ICMP echo request to 192.168.1.130... ");
+		if (XEmacLite_Send(&emaclite_inst, ethernet_frame, ip_frame.total_length) == XST_SUCCESS)
+		{
+			xil_printf("OK!\r\n");
+		}
+		else
+		{
+			xil_printf("\tXST_FAILURE\r\n");
+			return 0;
+		}
+	#endif
+
 	while (1)
 	{
 		/* if any data to process */
@@ -227,4 +326,47 @@ void recv_callback(void)
 void sent_callback(void)
 {
 	xil_printf("Packet sent!\r\n");
+}
+
+u16 calculate_header_checksum_ip(ip_frame_t packet)
+{
+	u32 sum = 0;
+	u16 ret_value = 0;
+
+	sum =	packet.version_header_length +
+			packet.type_of_service +
+			packet.total_length +
+			packet.identification +
+			packet.flags_offset +
+			packet.ttl +
+			packet.protocol +
+			packet.source_ip +
+			packet.destination_ip;
+
+	ret_value = ~((sum && 0xFF00) + (sum && 0x00FF));
+	return ret_value;
+}
+
+u32 convert_ip_address(u8 * ip_array)
+{
+	return (ip_array[3] << 24) | (ip_array[2] << 16) | (ip_array[1] << 8) | (ip_array[0]);
+}
+
+u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length)
+{
+	u32 sum = 0;
+	u32 i = 0;
+	u16 ret_value = 0;
+
+	sum =	packet.type_of_message +
+			packet.code +
+			packet.header_data;
+
+	for (i = 0; i < data_length; i++)
+	{
+		sum += packet.payload_data[i];
+	}
+
+	ret_value = ~((sum && 0xFF00) + (sum && 0x00FF));
+	return ret_value;
 }
