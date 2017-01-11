@@ -3,7 +3,9 @@
 #include "xil_printf.h"
 #include "xemaclite.h"
 
-#define ETHERNET_MAC_ADDRESS	{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
+#define SOURCE_MAC_ADDRESS		{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
+#define DESTINATION_MAC_ADDRESS	{0x34, 0x97, 0xF6, 0xDB, 0x8E, 0x1F}
+#define BROADCAST_MAC_ADDRESS	{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 #define SOURCE_IP_ADDRESS		{192, 168, 1, 200}
 #define DESTINATION_IP_ADDRESS	{192, 168, 1, 130}
 #define NET_MASK				{255, 255, 255, 0}
@@ -20,17 +22,28 @@
 //#define CHECK_LEDS
 //#define CHECK_LOOPBACK_IS_DISABLED
 #define GENERATE_ICMP_PING_REQUEST
-//#define SEND_ICMP_PING_TO_PC
+#define SEND_ICMP_PING_TO_PC
 
 /* the mac address of the board. this should be unique per board */
-u8 mac_ethernet_address[] = ETHERNET_MAC_ADDRESS;
-u8 source_ip_address[] = SOURCE_IP_ADDRESS;
-u8 destination_ip_address[] = DESTINATION_IP_ADDRESS;
+u8 source_mac_address[6] = SOURCE_MAC_ADDRESS;
+u8 destination_mac_address[6] = DESTINATION_MAC_ADDRESS;
+u8 broadcast_mac_address[6] = BROADCAST_MAC_ADDRESS;
+u8 source_ip_address[4] = SOURCE_IP_ADDRESS;
+u8 destination_ip_address[4] = DESTINATION_IP_ADDRESS;
 u8 * board_leds = (u8*) LEDS_ADDR;
 XEmacLite emaclite_inst;
 u8 buffer[2048] = {'\0'};
 u16 packetlen = 0;
 u16 data = 0;
+
+typedef struct ethernet_frame_t
+{
+	u8 destination_mac[6];
+	u8 source_mac[6];
+	u8 ether_type[2];
+	u8 * payload;
+	u8 frame_checksum[4]; /* remember to send frame_checksum and payload in inverse order */
+} ethernet_frame_t;
 
 typedef struct ip_frame_t
 {
@@ -75,12 +88,14 @@ int main(void)
 	#ifdef SEND_ICMP_PING_TO_PC
 		ip_frame_t ip_frame;
 		icmp_frame_t icmp_frame;
-		u8 * ethernet_frame;
+		ethernet_frame_t ethernet_frame;
 	#endif
 	#ifdef GENERATE_ICMP_PING_REQUEST
+		#ifndef SEND_ICMP_PING_TO_PC
 		ip_frame_t ip_frame;
 		icmp_frame_t icmp_frame;
-		u8 * ethernet_frame;
+		ethernet_frame_t ethernet_frame;
+		#endif
 		u16 i = 0;
 	#endif
 
@@ -100,11 +115,20 @@ int main(void)
 	}
 	xil_printf("OK!\r\n");
 
+	/* emaclite self-test */
+	xil_printf("Performing self-test... ");
+	if(XEmacLite_SelfTest(&emaclite_inst) != XST_SUCCESS)
+	{
+		xil_printf("Self-test incorrect, returning!\r\n");
+		return 0;
+	}
+	xil_printf("OK!\r\n");
+
 	/* set MAC address */
 	xil_printf("Setting MAC address to: '");
-	print_mac_address(mac_ethernet_address);
+	print_mac_address(source_mac_address);
 	xil_printf("'... ");
-	XEmacLite_SetMacAddress(&emaclite_inst, (u8 *) mac_ethernet_address);
+	XEmacLite_SetMacAddress(&emaclite_inst, (u8 *) source_mac_address);
 	xil_printf("OK!\r\n");
 
 	/* enable interrupts */
@@ -281,18 +305,20 @@ int main(void)
 		ip_frame.destination_ip = convert_ip_address(destination_ip_address);
 		ip_frame.payload_data = (u8 *) &icmp_frame;
 		ip_frame.header_checksum = calculate_header_checksum_ip(ip_frame);
-		ethernet_frame = (u8 *) &ip_frame;
+		ethernet_frame.ether_type[0] = 0x08;
+		ethernet_frame.ether_type[1] = 0x00;
+		ethernet_frame.payload = (u8 *) &ip_frame;
 
 		//for(i = 0; i < ip_frame.total_length; i=i+2)
 		for(i = 0; i < ip_frame.total_length; i++)
 		{
 			//xil_printf("0x%02x/0x%02x: 0x%04x\r\n", i, ip_frame.total_length, (ethernet_frame[i] << 8)|ethernet_frame[i+1]);
-			xil_printf("0x%02x\r\n", ethernet_frame[i]);
+			xil_printf("0x%02x\r\n", *(&ethernet_frame+i));
 		}
 	#endif
 	#ifdef SEND_ICMP_PING_TO_PC
 		xil_printf("Sending ICMP echo request to 192.168.1.130... ");
-		if (XEmacLite_Send(&emaclite_inst, ethernet_frame, ip_frame.total_length) == XST_SUCCESS)
+		if (XEmacLite_Send(&emaclite_inst, (u8*) &ethernet_frame, ip_frame.total_length) == XST_SUCCESS)
 		{
 			xil_printf("OK!\r\n");
 		}
