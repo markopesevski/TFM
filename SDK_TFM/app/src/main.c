@@ -21,8 +21,54 @@
 //#define PLAY_WITH_PHY_LEDS
 //#define CHECK_LEDS
 //#define CHECK_LOOPBACK_IS_DISABLED
-#define GENERATE_ICMP_PING_REQUEST
-#define SEND_ICMP_PING_TO_PC
+//#define GENERATE_ICMP_PING_REQUEST_PROGRAMATICALLY
+//#define SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
+#define SEND_ICMP_PING_REQUEST_COPYING
+
+#ifdef SEND_ICMP_PING_REQUEST_COPYING
+	#define DESTINATION_MAC_OFFSET					0
+	#define SOURCE_MAC_OFFSET						6
+	#define ETHERTYPE_OFFSET						12
+	#define IP_VERSION_HEADER_LENGTH_OFFSET			14
+	#define DIFFERENTIATED_SERVICES_OFFSET			15
+	#define TOTAL_LENGTH_OFFSET						16
+	#define IDENTIFICATION_OFFSET					18
+	#define FLAGS_FRAGMENTATION_OFFSET				20
+	#define TTL_OFFSET								22
+	#define PROTOCOL_OFFSET							23
+	#define IP_HEADER_CHECKSUM_OFFSET				24
+	#define SOURCE_IP_OFFSET						26
+	#define DESTINATION_IP_OFFSET					30
+	#define ICMP_TYPE_OFFSET						34
+	#define ICMP_CODE_OFFSET						35
+	#define ICMP_CHECKSUM_OFFSET					36
+	#define ICMP_IDENTIFIER_OFFSET					38
+	#define ICMP_SEQUENCE_OFFSET					40
+	#define ICMP_TIMESTAMP_OFFSET					42
+	#define	ICMP_PAYLOAD_OFFSET						50
+	u8 ping_frame[] =
+	{
+		0x34,0x97,0xF6,0xDB,0x8E,0x1F, /* destination MAC */
+		0x00,0x0a,0x35,0x00,0x01,0x02, /* source MAC */
+		0x08,0x00, /* ethertype */
+		0x45, /* IP version and header length */
+		0x00, /* Differentiated Services Field */
+		0x00,0x1C, /* total length */
+		0x00,0x01, /* identification */
+		0x40,0x00, /* flags (don't fragment), and fragment offset (0x00) */
+		0xFF, /* TTL */
+		0x01, /* protocol (ICMP) */
+		0x39,0x88, /* header checksum */
+		0xC0,0xA8,0x01,0xC8, /* source IP */
+		0xC0,0xA8,0x01,0x82, /* destination IP */
+		0x08,0x00, /* ICMP type and code (echo request) */
+		0xF7,0xFD, /* checksum */
+		0x00,0x01, /* identifier */
+		0x00,0x01/*,*/ /* sequence number */
+		//0x10,0x14,0x79,0x58,0x00,0x00,0x00,0x00, /* information (timestamp) */
+		//0x87,0x68,0x04,0x00,0x00,0x00,0x00,0x00,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1A,0x1B,0x1C,0x1D,0x1E,0x1F,0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,0x28,0x29,0x2A,0x2B,0x2C,0x2D,0x2E,0x2F,0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37 /* payload data */
+	};
+#endif
 
 /* the mac address of the board. this should be unique per board */
 u8 source_mac_address[6] = SOURCE_MAC_ADDRESS;
@@ -38,6 +84,7 @@ u16 data = 0;
 
 typedef struct ethernet_frame_t
 {
+	u16 total_length;
 	u8 destination_mac[6];
 	u8 source_mac[6];
 	u8 ether_type[2];
@@ -85,13 +132,13 @@ int main(void)
 	#ifdef PLAY_WITH_PHY_LEDS
 		u16 leds_phy_reg = 0;
 	#endif
-	#ifdef SEND_ICMP_PING_TO_PC
+	#ifdef SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
 		ip_frame_t ip_frame;
 		icmp_frame_t icmp_frame;
 		ethernet_frame_t ethernet_frame;
 	#endif
-	#ifdef GENERATE_ICMP_PING_REQUEST
-		#ifndef SEND_ICMP_PING_TO_PC
+	#ifdef GENERATE_ICMP_PING_REQUEST_PROGRAMATICALLY
+		#ifndef SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
 		ip_frame_t ip_frame;
 		icmp_frame_t icmp_frame;
 		ethernet_frame_t ethernet_frame;
@@ -272,7 +319,7 @@ int main(void)
 		}
 	#endif
 
-	#ifdef GENERATE_ICMP_PING_REQUEST
+	#ifdef GENERATE_ICMP_PING_REQUEST_PROGRAMATICALLY
 		icmp_frame.total_length =	sizeof(icmp_frame.type_of_message) +
 									sizeof(icmp_frame.code) +
 									sizeof(icmp_frame.header_checksum) +
@@ -305,20 +352,36 @@ int main(void)
 		ip_frame.destination_ip = convert_ip_address(destination_ip_address);
 		ip_frame.payload_data = (u8 *) &icmp_frame;
 		ip_frame.header_checksum = calculate_header_checksum_ip(ip_frame);
+		memcpy(&ethernet_frame.destination_mac[0], &destination_mac_address[0], 6);
+		memcpy(&ethernet_frame.source_mac[0], &source_mac_address[0], 6);
 		ethernet_frame.ether_type[0] = 0x08;
 		ethernet_frame.ether_type[1] = 0x00;
 		ethernet_frame.payload = (u8 *) &ip_frame;
+		ethernet_frame.total_length = ip_frame.total_length + 14;
 
 		//for(i = 0; i < ip_frame.total_length; i=i+2)
-		for(i = 0; i < ip_frame.total_length; i++)
+		//for(i = 0; i < ethernet_frame.total_length; i++)
+		for(i = 0; i < ethernet_frame.total_length; i=i+2)
 		{
 			//xil_printf("0x%02x/0x%02x: 0x%04x\r\n", i, ip_frame.total_length, (ethernet_frame[i] << 8)|ethernet_frame[i+1]);
-			xil_printf("0x%02x\r\n", *(&ethernet_frame+i));
+			xil_printf("0x%04x\r\n", (((u8)*((&ethernet_frame.total_length)+i))<<8) | ((u8)*((&ethernet_frame.total_length)+i+1)));
 		}
 	#endif
-	#ifdef SEND_ICMP_PING_TO_PC
+	#ifdef SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
 		xil_printf("Sending ICMP echo request to 192.168.1.130... ");
-		if (XEmacLite_Send(&emaclite_inst, (u8*) &ethernet_frame, ip_frame.total_length) == XST_SUCCESS)
+		if (XEmacLite_Send(&emaclite_inst, (u8 *) &ethernet_frame.destination_mac[0], ip_frame.total_length) == XST_SUCCESS)
+		{
+			xil_printf("OK!\r\n");
+		}
+		else
+		{
+			xil_printf("\tXST_FAILURE\r\n");
+			return 0;
+		}
+	#endif
+	#ifdef SEND_ICMP_PING_REQUEST_COPYING
+		xil_printf("Sending ICMP echo request to 192.168.1.130... ");
+		if (XEmacLite_Send(&emaclite_inst, (u8 *) &ping_frame[0], 44) == XST_SUCCESS)
 		{
 			xil_printf("OK!\r\n");
 		}
