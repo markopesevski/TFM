@@ -17,6 +17,20 @@
 #define LEDS_REGISTER 0x18
 #define BMCR_REGISTER 0x00
 
+typedef enum
+{
+	IPv4 = 0x0800,
+	ARP = 0x0806,
+	WOL = 0x0842
+} ethertype_t;
+
+typedef enum
+{
+	RESERVED = 0b100,
+	DONT_FRAGMENT = 0b010,
+	MORE_FRAGMENTS = 0b001
+} flags_t;
+
 //#define READ_PHY_REGISTERS
 //#define PLAY_WITH_PHY_LEDS
 //#define CHECK_LEDS
@@ -58,13 +72,13 @@
 		0x40,0x00, /* flags (don't fragment), and fragment offset (0x00) */
 		0xFF, /* TTL */
 		0x01, /* protocol (ICMP) */
-		0x39,0x88, /* header checksum */
+		0xf7,0x44, /* header checksum */
 		0xC0,0xA8,0x01,0xC8, /* source IP */
 		0xC0,0xA8,0x01,0x82, /* destination IP */
 		0x08,0x00, /* ICMP type and code (echo request) */
 		0xF7,0xFD, /* checksum */
 		0x00,0x01, /* identifier */
-		0x00,0x01/*,*/ /* sequence number */
+		0x00,0x00/*,*/ /* sequence number */
 		//0x10,0x14,0x79,0x58,0x00,0x00,0x00,0x00, /* information (timestamp) */
 		//0x87,0x68,0x04,0x00,0x00,0x00,0x00,0x00,0x10,0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1A,0x1B,0x1C,0x1D,0x1E,0x1F,0x20,0x21,0x22,0x23,0x24,0x25,0x26,0x27,0x28,0x29,0x2A,0x2B,0x2C,0x2D,0x2E,0x2F,0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37 /* payload data */
 	};
@@ -458,4 +472,62 @@ u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length)
 
 	ret_value = ~((sum && 0xFF00) + (sum && 0x00FF));
 	return ret_value;
+}
+
+void set_eth_frame_destination_mac(u8 * frame, u8 * mac)
+{
+	memcpy((&frame + DESTINATION_MAC_OFFSET), mac, 6 * sizeof(u8));
+}
+
+void set_eth_frame_source_mac(u8 * frame, u8 * mac)
+{
+	memcpy((&frame + SOURCE_MAC_OFFSET), mac, 6 * sizeof(u8));
+}
+
+void set_eth_frame_ethertype(u8 * frame, ethertype_t type)
+{
+	memcpy((&frame + ETHERTYPE_OFFSET), (u16 *) &type, 1 * sizeof(u16));
+}
+
+int set_ip_frame_version_header_length(u8 * frame, u8 ip_version, u8 header_length)
+{
+	if (ip_version != 4 && ip_version != 6)
+	{
+		return -1;
+	}
+	else if (header_length > 15)
+	{
+		return -1;
+	}
+
+	memcpy((&frame + IP_VERSION_HEADER_LENGTH_OFFSET), (u8 *) (((ip_version & 0x0F) << 4) | (header_length & 0x0F)), 1 * sizeof(u8));
+	return 0;
+}
+
+void set_ip_frame_total_length(u8 * frame)
+{
+	//TODO
+}
+
+void set_ip_frame_identification(u8 * frame)
+{
+	/*
+		The IPv4 ID field is thus meaningful only for non-atomic datagrams --
+		either those datagrams that have already been fragmented or those for
+		which fragmentation remains permitted.
+   */
+}
+
+int set_ip_frame_flags_fragmentation(u8 * frame, flags_t flags, u16 fragment_offset)
+{
+	if (flags >= 0b100)
+	{
+		return -1;
+	}
+	else if (fragment_offset > 8192)
+	{
+		return -1;
+	}
+
+	return 0;
 }
