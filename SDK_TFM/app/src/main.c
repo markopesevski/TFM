@@ -3,6 +3,7 @@
 #include "xil_printf.h"
 #include "xemaclite.h"
 #include "xintc.h"
+#include "mb_interface.h"
 
 #define SOURCE_MAC_ADDRESS		{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
 #define SOURCE_MAC_ADDRESS_INV	{0x02, 0x01, 0x00, 0x35, 0x0a, 0x00}
@@ -118,10 +119,11 @@ u8 destination_ip_address[4] = DESTINATION_IP_ADDRESS;
 u8 * board_leds = (u8*) LEDS_ADDR;
 XEmacLite emaclite_inst;
 XIntc intc_inst;
-XIntc_Config * config_intc;
+//XIntc_Config * config_intc;
 u8 buffer[2048] = {'\0'};
 u16 packetlen = 0;
 u16 data = 0;
+int response = XST_SUCCESS;
 
 typedef struct ethernet_frame_t
 {
@@ -215,26 +217,26 @@ int main(void)
 	}
 	xil_printf("OK!\r\n");
 
-	xil_printf("Enabling Intc peripheral...");
-	XIntc_Enable(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID);
-	if(intc_inst.IsReady == 0)
-	{
-		xil_printf("Intc peripheral not ready, returning!\r\n");
-	}
-	xil_printf("OK!\r\n");
-
-	xil_printf("Initializing system interrupts... ");
-	if (XIntc_Start(&intc_inst, XIN_REAL_MODE) != XST_SUCCESS)
-	{
-		xil_printf("Could not initialize interrupts, returning!\r\n");
-		return 0;
-	}
-	xil_printf("OK!\r\n");
+//	xil_printf("Enabling Intc peripheral...");
+//	XIntc_Enable(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID);
+//	if(intc_inst.IsReady == 0)
+//	{
+//		xil_printf("Intc peripheral not ready, returning!\r\n");
+//	}
+//	xil_printf("OK!\r\n");
 
 	xil_printf("Connecting interrupt source for Emaclite... ");
-	if (XIntc_Connect(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID, (XInterruptHandler) XEmacLite_InterruptHandler, &intc_inst) != XST_SUCCESS)
+	if (XIntc_Connect(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID, (XInterruptHandler) XEmacLite_InterruptHandler, (void *) &intc_inst) != XST_SUCCESS)
 	{
 		xil_printf("Something failed!\r\n");
+	}
+	xil_printf("OK!\r\n");
+
+	xil_printf("Starting system interrupts... ");
+	if (XIntc_Start(&intc_inst, XIN_REAL_MODE) != XST_SUCCESS)
+	{
+		xil_printf("Could not start interrupts, returning!\r\n");
+		return 0;
 	}
 	xil_printf("OK!\r\n");
 
@@ -246,9 +248,10 @@ int main(void)
 	{
 		xil_printf("Intc peripheral not started, returning!\r\n");
 	}
-	if (&XEmacLite_InterruptHandler != &(intc_inst.CfgPtr->HandlerTable[XPAR_INTC_0_EMACLITE_0_VEC_ID].Handler))
+	if (intc_inst.CfgPtr->HandlerTable[XPAR_INTC_0_EMACLITE_0_VEC_ID].Handler != (XInterruptHandler) XEmacLite_InterruptHandler)
 	{
 		xil_printf("Interrupt handler for Emaclite not assigned properly!\r\n");
+		xil_printf("\t0x%x != 0x%x\r\n", (XInterruptHandler *) &XEmacLite_InterruptHandler, &(intc_inst.CfgPtr->HandlerTable[XPAR_INTC_0_EMACLITE_0_VEC_ID].Handler));
 	}
 
 
@@ -278,8 +281,11 @@ int main(void)
 	xil_printf("OK!\r\n");
 
 	/* enable interrupts */
-	xil_printf("Enabling interrupts... ");
-	if (XEmacLite_EnableInterrupts(&emaclite_inst) == XST_NO_CALLBACK)
+	xil_printf("Enabling Emaclite interrupts... ");
+	XEmacLite_SetRecvHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) recv_callback);
+	XEmacLite_SetSendHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) sent_callback);
+	response = XEmacLite_EnableInterrupts(&emaclite_inst);
+	if (response == XST_NO_CALLBACK)
 	{
 		xil_printf("Assigning callback functions... ");
 		XEmacLite_SetRecvHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) recv_callback);
@@ -289,6 +295,10 @@ int main(void)
 			xil_printf("Error enabling interrupts, returning!\r\n");
 			return 0;
 		}
+	}
+	else if (response == XST_SUCCESS)
+	{
+
 	}
 	else
 	{
@@ -301,7 +311,11 @@ int main(void)
 		return 0;
 	}
 	xil_printf("OK!\r\n");
-	xil_printf("Following addresses should be equal: %x == %x ?\r\n", &(emaclite_inst.RecvHandler), &(recv_callback));
+	if (emaclite_inst.RecvHandler != (XEmacLite_Handler) recv_callback)
+	{
+		xil_printf("Interrupt handler for Emaclite not assigned properly!\r\n");
+		xil_printf("\t0x%x != 0x%x\r\n", &(emaclite_inst.RecvHandler), (XEmacLite_Handler *) &(recv_callback));
+	}
 
 	#ifdef RECEIVE_PACKET
 		recv_response = XEmacLite_Recv(&emaclite_inst, &recv_frame[0]);
