@@ -2,8 +2,10 @@
 #include "xparameters.h"
 #include "xil_printf.h"
 #include "xemaclite.h"
+#include "xintc.h"
 
 #define SOURCE_MAC_ADDRESS		{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
+#define SOURCE_MAC_ADDRESS_INV	{0x02, 0x01, 0x00, 0x35, 0x0a, 0x00}
 #define DESTINATION_MAC_ADDRESS	{0x34, 0x97, 0xF6, 0xDB, 0x8E, 0x1F}
 #define BROADCAST_MAC_ADDRESS	{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
 #define SOURCE_IP_ADDRESS		{192, 168, 1, 200}
@@ -37,7 +39,9 @@ typedef enum
 //#define CHECK_LOOPBACK_IS_DISABLED
 //#define GENERATE_ICMP_PING_REQUEST_PROGRAMATICALLY
 //#define SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
-#define SEND_ICMP_PING_REQUEST_COPYING
+//#define SEND_ICMP_PING_REQUEST_COPYING
+#define RECEIVE_PACKET
+#define BROADCAST_ARP_REPLY
 
 #ifdef SEND_ICMP_PING_REQUEST_COPYING
 	#define DESTINATION_MAC_OFFSET					0
@@ -84,14 +88,37 @@ typedef enum
 	};
 #endif
 
+#ifdef RECEIVE_PACKET
+
+	u8 arp_response[] =
+	{
+		0xff,0xff,0xff,0xff,0xff,0xff, /* ethernet frame destination mac */
+		0x00,0x0a,0x35,0x00,0x01,0x02, /* ethernet frame source mac */
+		0x08,0x06, /* ethertype (ARP) */
+		0x00,0x01, /* ARP hardware type */
+		0x08,0x00, /* ARP protocol type */
+		0x06, /* ARP hardware address size in bytes (6 bytes for ethernet mac address) */
+		0x04, /* ARP length of protocol addresses in bytes, IPv4 is 4 bytes */
+		0x00,0x02, /* ARP operation code, 1 for request, 2 for reply */
+		0x00,0x0a,0x35,0x00,0x01,0x02, /* ARP sender hardware address */
+		0xc0,0xa8,0x01,0xc8, /* ARP sender protocol address */
+		0xff,0xff,0xff,0xff,0xff,0xff, /* ARP target hardware address */
+		0xc0,0xa8,0x01,0x01, /* ARP target protocol address */
+	};
+
+#endif
+
 /* the mac address of the board. this should be unique per board */
-u8 source_mac_address[6] = SOURCE_MAC_ADDRESS;
+//u8 source_mac_address[6] = SOURCE_MAC_ADDRESS;
+u8 source_mac_address[6] = SOURCE_MAC_ADDRESS_INV;
 u8 destination_mac_address[6] = DESTINATION_MAC_ADDRESS;
 u8 broadcast_mac_address[6] = BROADCAST_MAC_ADDRESS;
 u8 source_ip_address[4] = SOURCE_IP_ADDRESS;
 u8 destination_ip_address[4] = DESTINATION_IP_ADDRESS;
 u8 * board_leds = (u8*) LEDS_ADDR;
 XEmacLite emaclite_inst;
+XIntc intc_inst;
+XIntc_Config * config_intc;
 u8 buffer[2048] = {'\0'};
 u16 packetlen = 0;
 u16 data = 0;
@@ -132,25 +159,38 @@ typedef struct icmp_frame_t
 } icmp_frame_t;
 
 void print_mac_address(u8 * addr);
-void recv_callback(void);
+void recv_callback(void * callbackReference);
 void sent_callback(void);
 u16 calculate_header_checksum_ip(ip_frame_t packet);
 u32 convert_ip_address(u8 * ip_array);
 u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length);
+
+#ifdef RECEIVE_PACKET
+	u8 recv_frame[2048] = {'\0'};
+	u16 recv_response = 0;
+	u16 recv_length = 0;
+#endif
+
+
+// XPAR_INTC_0_EMACLITE_0_VEC_ID
+
 
 int main(void)
 {
 	#ifdef READ_PHY_REGISTERS
 		u8 i = 0;
 	#endif
+
 	#ifdef PLAY_WITH_PHY_LEDS
 		u16 leds_phy_reg = 0;
 	#endif
+
 	#ifdef SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
 		ip_frame_t ip_frame;
 		icmp_frame_t icmp_frame;
 		ethernet_frame_t ethernet_frame;
 	#endif
+
 	#ifdef GENERATE_ICMP_PING_REQUEST_PROGRAMATICALLY
 		#ifndef SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
 		ip_frame_t ip_frame;
@@ -167,6 +207,51 @@ int main(void)
 	xil_printf("%c[2J",27);
 	xil_printf("----- TFM - Marko Peshevski -----\r\n");
 
+	/* initialize and start system interrupts */
+	xil_printf("Initializing Intc hardware peripheral... ");
+	if (XIntc_Initialize(&intc_inst, XPAR_INTC_0_DEVICE_ID) != XST_SUCCESS)
+	{
+		xil_printf("Error initializing Intc hardware peripheral, returning!\r\n");
+	}
+	xil_printf("OK!\r\n");
+
+	xil_printf("Enabling Intc peripheral...");
+	XIntc_Enable(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID);
+	if(intc_inst.IsReady == 0)
+	{
+		xil_printf("Intc peripheral not ready, returning!\r\n");
+	}
+	xil_printf("OK!\r\n");
+
+	xil_printf("Initializing system interrupts... ");
+	if (XIntc_Start(&intc_inst, XIN_REAL_MODE) != XST_SUCCESS)
+	{
+		xil_printf("Could not initialize interrupts, returning!\r\n");
+		return 0;
+	}
+	xil_printf("OK!\r\n");
+
+	xil_printf("Connecting interrupt source for Emaclite... ");
+	if (XIntc_Connect(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID, (XInterruptHandler) XEmacLite_InterruptHandler, &intc_inst) != XST_SUCCESS)
+	{
+		xil_printf("Something failed!\r\n");
+	}
+	xil_printf("OK!\r\n");
+
+	if (!intc_inst.IsReady)
+	{
+		xil_printf("Intc peripheral not ready, returning!\r\n");
+	}
+	if (!intc_inst.IsStarted)
+	{
+		xil_printf("Intc peripheral not started, returning!\r\n");
+	}
+	if (&XEmacLite_InterruptHandler != &(intc_inst.CfgPtr->HandlerTable[XPAR_INTC_0_EMACLITE_0_VEC_ID].Handler))
+	{
+		xil_printf("Interrupt handler for Emaclite not assigned properly!\r\n");
+	}
+
+
 	/* initialize emaclite driver and PHY */
 	xil_printf("Initializing Emaclite... ");
 	if (XEmacLite_Initialize(&emaclite_inst, XPAR_ETHERNET_MAC_DEVICE_ID) != XST_SUCCESS)
@@ -177,7 +262,7 @@ int main(void)
 	xil_printf("OK!\r\n");
 
 	/* emaclite self-test */
-	xil_printf("Performing self-test... ");
+	xil_printf("Performing Emaclite self-test... ");
 	if(XEmacLite_SelfTest(&emaclite_inst) != XST_SUCCESS)
 	{
 		xil_printf("Self-test incorrect, returning!\r\n");
@@ -197,15 +282,30 @@ int main(void)
 	if (XEmacLite_EnableInterrupts(&emaclite_inst) == XST_NO_CALLBACK)
 	{
 		xil_printf("Assigning callback functions... ");
-		XEmacLite_SetRecvHandler(&emaclite_inst, NULL, (XEmacLite_Handler) recv_callback);
-		XEmacLite_SetSendHandler(&emaclite_inst, NULL, (XEmacLite_Handler) sent_callback);
+		XEmacLite_SetRecvHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) recv_callback);
+		XEmacLite_SetSendHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) sent_callback);
+		if (XEmacLite_EnableInterrupts(&emaclite_inst) != XST_SUCCESS)
+		{
+			xil_printf("Error enabling interrupts, returning!\r\n");
+			return 0;
+		}
 	}
 	else
 	{
-		xil_printf("Callbacks already assigned?\r\n");
+		xil_printf("Callbacks already assigned? Trying to enable interrupts... \r\n");
+		if (XEmacLite_EnableInterrupts(&emaclite_inst) != XST_SUCCESS)
+		{
+			xil_printf("Error enabling interrupts, returning!\r\n");
+			return 0;
+		}
 		return 0;
 	}
 	xil_printf("OK!\r\n");
+	xil_printf("Following addresses should be equal: %x == %x ?\r\n", &(emaclite_inst.RecvHandler), &(recv_callback));
+
+	#ifdef RECEIVE_PACKET
+		recv_response = XEmacLite_Recv(&emaclite_inst, &recv_frame[0]);
+	#endif
 
 	#ifdef READ_PHY_REGISTERS
 		xil_printf("Reading PHY registers:\r\n");
@@ -393,9 +493,24 @@ int main(void)
 			return 0;
 		}
 	#endif
+
 	#ifdef SEND_ICMP_PING_REQUEST_COPYING
 		xil_printf("Sending ICMP echo request to 192.168.1.130... ");
 		if (XEmacLite_Send(&emaclite_inst, (u8 *) &ping_frame[0], 44) == XST_SUCCESS)
+		{
+			xil_printf("OK!\r\n");
+		}
+		else
+		{
+			xil_printf("\tXST_FAILURE\r\n");
+			return 0;
+		}
+	#endif
+
+
+	#ifdef BROADCAST_ARP_REPLY
+		xil_printf("Sending ARP reply broadcast... ");
+		if (XEmacLite_Send(&emaclite_inst, (u8 *) &arp_response[0], 42) == XST_SUCCESS)
 		{
 			xil_printf("OK!\r\n");
 		}
@@ -421,14 +536,19 @@ void print_mac_address(u8 * addr)
 	xil_printf("%02x:%02x:%02x:%02x:%02x:%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 }
 
-void recv_callback(void)
+void recv_callback(void * callbackReference)
 {
-	xil_printf("Packet received!\r\n");
+	//xil_printf("Packet received!\r\n");
+	*board_leds = 0b1010;
+	#ifdef RECEIVE_PACKET
+		recv_response = XEmacLite_Recv(&emaclite_inst, &recv_frame[0]);
+	#endif
 }
 
 void sent_callback(void)
 {
-	xil_printf("Packet sent!\r\n");
+	//xil_printf("Packet sent!\r\n");
+	*board_leds = 0b0101;
 }
 
 u16 calculate_header_checksum_ip(ip_frame_t packet)
@@ -474,60 +594,62 @@ u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length)
 	return ret_value;
 }
 
-void set_eth_frame_destination_mac(u8 * frame, u8 * mac)
-{
-	memcpy((&frame + DESTINATION_MAC_OFFSET), mac, 6 * sizeof(u8));
-}
-
-void set_eth_frame_source_mac(u8 * frame, u8 * mac)
-{
-	memcpy((&frame + SOURCE_MAC_OFFSET), mac, 6 * sizeof(u8));
-}
-
-void set_eth_frame_ethertype(u8 * frame, ethertype_t type)
-{
-	memcpy((&frame + ETHERTYPE_OFFSET), (u16 *) &type, 1 * sizeof(u16));
-}
-
-int set_ip_frame_version_header_length(u8 * frame, u8 ip_version, u8 header_length)
-{
-	if (ip_version != 4 && ip_version != 6)
+#ifdef SEND_ICMP_PING_REQUEST_COPYING
+	void set_eth_frame_destination_mac(u8 * frame, u8 * mac)
 	{
-		return -1;
-	}
-	else if (header_length > 15)
-	{
-		return -1;
+		memcpy((&frame + DESTINATION_MAC_OFFSET), mac, 6 * sizeof(u8));
 	}
 
-	memcpy((&frame + IP_VERSION_HEADER_LENGTH_OFFSET), (u8 *) (((ip_version & 0x0F) << 4) | (header_length & 0x0F)), 1 * sizeof(u8));
-	return 0;
-}
-
-void set_ip_frame_total_length(u8 * frame)
-{
-	//TODO
-}
-
-void set_ip_frame_identification(u8 * frame)
-{
-	/*
-		The IPv4 ID field is thus meaningful only for non-atomic datagrams --
-		either those datagrams that have already been fragmented or those for
-		which fragmentation remains permitted.
-   */
-}
-
-int set_ip_frame_flags_fragmentation(u8 * frame, flags_t flags, u16 fragment_offset)
-{
-	if (flags >= 0b100)
+	void set_eth_frame_source_mac(u8 * frame, u8 * mac)
 	{
-		return -1;
-	}
-	else if (fragment_offset > 8192)
-	{
-		return -1;
+		memcpy((&frame + SOURCE_MAC_OFFSET), mac, 6 * sizeof(u8));
 	}
 
-	return 0;
-}
+	void set_eth_frame_ethertype(u8 * frame, ethertype_t type)
+	{
+		memcpy((&frame + ETHERTYPE_OFFSET), (u16 *) &type, 1 * sizeof(u16));
+	}
+
+	int set_ip_frame_version_header_length(u8 * frame, u8 ip_version, u8 header_length)
+	{
+		if (ip_version != 4 && ip_version != 6)
+		{
+			return -1;
+		}
+		else if (header_length > 15)
+		{
+			return -1;
+		}
+
+		memcpy((&frame + IP_VERSION_HEADER_LENGTH_OFFSET), (u8 *) (((ip_version & 0x0F) << 4) | (header_length & 0x0F)), 1 * sizeof(u8));
+		return 0;
+	}
+
+	void set_ip_frame_total_length(u8 * frame)
+	{
+		//TODO
+	}
+
+	void set_ip_frame_identification(u8 * frame)
+	{
+		/*
+			The IPv4 ID field is thus meaningful only for non-atomic datagrams --
+			either those datagrams that have already been fragmented or those for
+			which fragmentation remains permitted.
+	   */
+	}
+
+	int set_ip_frame_flags_fragmentation(u8 * frame, flags_t flags, u16 fragment_offset)
+	{
+		if (flags >= 0b100)
+		{
+			return -1;
+		}
+		else if (fragment_offset > 8192)
+		{
+			return -1;
+		}
+
+		return 0;
+	}
+#endif
