@@ -4,6 +4,7 @@
 #include "xemaclite.h"
 #include "xintc.h"
 #include "mb_interface.h"
+#include "xil_exception.h"
 
 #define SOURCE_MAC_ADDRESS		{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
 #define SOURCE_MAC_ADDRESS_INV	{0x02, 0x01, 0x00, 0x35, 0x0a, 0x00}
@@ -41,8 +42,10 @@ typedef enum
 //#define GENERATE_ICMP_PING_REQUEST_PROGRAMATICALLY
 //#define SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
 //#define SEND_ICMP_PING_REQUEST_COPYING
-#define RECEIVE_PACKET
+//#define RECEIVE_PACKET
 #define BROADCAST_ARP_REPLY
+//#define MY_INTC
+#define THEIR_INTC
 
 #ifdef SEND_ICMP_PING_REQUEST_COPYING
 	#define DESTINATION_MAC_OFFSET					0
@@ -89,29 +92,25 @@ typedef enum
 	};
 #endif
 
-#ifdef RECEIVE_PACKET
-
-	u8 arp_response[] =
-	{
-		0xff,0xff,0xff,0xff,0xff,0xff, /* ethernet frame destination mac */
-		0x00,0x0a,0x35,0x00,0x01,0x02, /* ethernet frame source mac */
-		0x08,0x06, /* ethertype (ARP) */
-		0x00,0x01, /* ARP hardware type */
-		0x08,0x00, /* ARP protocol type */
-		0x06, /* ARP hardware address size in bytes (6 bytes for ethernet mac address) */
-		0x04, /* ARP length of protocol addresses in bytes, IPv4 is 4 bytes */
-		0x00,0x02, /* ARP operation code, 1 for request, 2 for reply */
-		0x00,0x0a,0x35,0x00,0x01,0x02, /* ARP sender hardware address */
-		0xc0,0xa8,0x01,0xc8, /* ARP sender protocol address */
-		0xff,0xff,0xff,0xff,0xff,0xff, /* ARP target hardware address */
-		0xc0,0xa8,0x01,0x01, /* ARP target protocol address */
-	};
-
-#endif
+u8 arp_response[] =
+{
+	0xff,0xff,0xff,0xff,0xff,0xff, /* ethernet frame destination mac */
+	0x00,0x0a,0x35,0x00,0x01,0x02, /* ethernet frame source mac */
+	0x08,0x06, /* ethertype (ARP) */
+	0x00,0x01, /* ARP hardware type */
+	0x08,0x00, /* ARP protocol type */
+	0x06, /* ARP hardware address size in bytes (6 bytes for ethernet mac address) */
+	0x04, /* ARP length of protocol addresses in bytes, IPv4 is 4 bytes */
+	0x00,0x02, /* ARP operation code, 1 for request, 2 for reply */
+	0x00,0x0a,0x35,0x00,0x01,0x02, /* ARP sender hardware address */
+	0xc0,0xa8,0x01,0xc8, /* ARP sender protocol address */
+	0xff,0xff,0xff,0xff,0xff,0xff, /* ARP target hardware address */
+	0xc0,0xa8,0x01,0x01, /* ARP target protocol address */
+};
 
 /* the mac address of the board. this should be unique per board */
-//u8 source_mac_address[6] = SOURCE_MAC_ADDRESS;
-u8 source_mac_address[6] = SOURCE_MAC_ADDRESS_INV;
+u8 source_mac_address[6] = SOURCE_MAC_ADDRESS;
+//u8 source_mac_address[6] = SOURCE_MAC_ADDRESS_INV;
 u8 destination_mac_address[6] = DESTINATION_MAC_ADDRESS;
 u8 broadcast_mac_address[6] = BROADCAST_MAC_ADDRESS;
 u8 source_ip_address[4] = SOURCE_IP_ADDRESS;
@@ -166,6 +165,8 @@ void sent_callback(void);
 u16 calculate_header_checksum_ip(ip_frame_t packet);
 u32 convert_ip_address(u8 * ip_array);
 u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length);
+void platform_setup_interrupts();
+void platform_enable_interrupts();
 
 #ifdef RECEIVE_PACKET
 	u8 recv_frame[2048] = {'\0'};
@@ -209,51 +210,59 @@ int main(void)
 	xil_printf("%c[2J",27);
 	xil_printf("----- TFM - Marko Peshevski -----\r\n");
 
-	/* initialize and start system interrupts */
-	xil_printf("Initializing Intc hardware peripheral... ");
-	if (XIntc_Initialize(&intc_inst, XPAR_INTC_0_DEVICE_ID) != XST_SUCCESS)
-	{
-		xil_printf("Error initializing Intc hardware peripheral, returning!\r\n");
-	}
-	xil_printf("OK!\r\n");
+	#ifdef MY_INTC
+		/* initialize and start system interrupts */
+		xil_printf("Initializing Intc hardware peripheral... ");
+		if (XIntc_Initialize(&intc_inst, XPAR_INTC_0_DEVICE_ID) != XST_SUCCESS)
+		{
+			xil_printf("Error initializing Intc hardware peripheral, returning!\r\n");
+		}
+		xil_printf("OK!\r\n");
 
-//	xil_printf("Enabling Intc peripheral...");
-//	XIntc_Enable(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID);
-//	if(intc_inst.IsReady == 0)
-//	{
-//		xil_printf("Intc peripheral not ready, returning!\r\n");
-//	}
-//	xil_printf("OK!\r\n");
+		xil_printf("Starting system interrupts... ");
+		if (XIntc_Start(&intc_inst, XIN_REAL_MODE) != XST_SUCCESS)
+		{
+			xil_printf("Could not start interrupts, returning!\r\n");
+			return 0;
+		}
+		xil_printf("OK!\r\n");
 
-	xil_printf("Connecting interrupt source for Emaclite... ");
-	if (XIntc_Connect(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID, (XInterruptHandler) XEmacLite_InterruptHandler, (void *) &intc_inst) != XST_SUCCESS)
-	{
-		xil_printf("Something failed!\r\n");
-	}
-	xil_printf("OK!\r\n");
+	//	xil_printf("Enabling Intc peripheral...");
+	//	XIntc_Enable(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID);
+	//	if(intc_inst.IsReady == 0)
+	//	{
+	//		xil_printf("Intc peripheral not ready, returning!\r\n");
+	//	}
+	//	xil_printf("OK!\r\n");
 
-	xil_printf("Starting system interrupts... ");
-	if (XIntc_Start(&intc_inst, XIN_REAL_MODE) != XST_SUCCESS)
-	{
-		xil_printf("Could not start interrupts, returning!\r\n");
-		return 0;
-	}
-	xil_printf("OK!\r\n");
+		xil_printf("Connecting interrupt source for Emaclite... ");
+		if (XIntc_Connect(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID, (XInterruptHandler) XEmacLite_InterruptHandler, (void *) &intc_inst) != XST_SUCCESS)
+		{
+			xil_printf("Something failed!\r\n");
+		}
+		xil_printf("OK!\r\n");
 
-	if (!intc_inst.IsReady)
-	{
-		xil_printf("Intc peripheral not ready, returning!\r\n");
-	}
-	if (!intc_inst.IsStarted)
-	{
-		xil_printf("Intc peripheral not started, returning!\r\n");
-	}
-	if (intc_inst.CfgPtr->HandlerTable[XPAR_INTC_0_EMACLITE_0_VEC_ID].Handler != (XInterruptHandler) XEmacLite_InterruptHandler)
-	{
-		xil_printf("Interrupt handler for Emaclite not assigned properly!\r\n");
-		xil_printf("\t0x%x != 0x%x\r\n", (XInterruptHandler *) &XEmacLite_InterruptHandler, &(intc_inst.CfgPtr->HandlerTable[XPAR_INTC_0_EMACLITE_0_VEC_ID].Handler));
-	}
+		XIntc_EnableIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_ETHERNET_MAC_IP2INTC_IRPT_MASK);
+		XIntc_Enable(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID);
 
+		if (!intc_inst.IsReady)
+		{
+			xil_printf("Intc peripheral not ready, returning!\r\n");
+		}
+		if (!intc_inst.IsStarted)
+		{
+			xil_printf("Intc peripheral not started, returning!\r\n");
+		}
+		if (intc_inst.CfgPtr->HandlerTable[XPAR_INTC_0_EMACLITE_0_VEC_ID].Handler != (XInterruptHandler) XEmacLite_InterruptHandler)
+		{
+			xil_printf("Interrupt handler for Emaclite not assigned properly!\r\n");
+			xil_printf("\t0x%x != 0x%x\r\n", (XInterruptHandler *) &XEmacLite_InterruptHandler, &(intc_inst.CfgPtr->HandlerTable[XPAR_INTC_0_EMACLITE_0_VEC_ID].Handler));
+		}
+	#endif
+
+	#ifdef THEIR_INTC
+		platform_setup_interrupts();
+	#endif
 
 	/* initialize emaclite driver and PHY */
 	xil_printf("Initializing Emaclite... ");
@@ -282,10 +291,7 @@ int main(void)
 
 	/* enable interrupts */
 	xil_printf("Enabling Emaclite interrupts... ");
-	XEmacLite_SetRecvHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) recv_callback);
-	XEmacLite_SetSendHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) sent_callback);
-	response = XEmacLite_EnableInterrupts(&emaclite_inst);
-	if (response == XST_NO_CALLBACK)
+	if (XEmacLite_EnableInterrupts(&emaclite_inst) != XST_SUCCESS)
 	{
 		xil_printf("Assigning callback functions... ");
 		XEmacLite_SetRecvHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) recv_callback);
@@ -295,10 +301,6 @@ int main(void)
 			xil_printf("Error enabling interrupts, returning!\r\n");
 			return 0;
 		}
-	}
-	else if (response == XST_SUCCESS)
-	{
-
 	}
 	else
 	{
@@ -495,6 +497,7 @@ int main(void)
 			xil_printf("0x%04x\r\n", (((u8)*((&ethernet_frame.total_length)+i))<<8) | ((u8)*((&ethernet_frame.total_length)+i+1)));
 		}
 	#endif
+
 	#ifdef SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
 		xil_printf("Sending ICMP echo request to 192.168.1.130... ");
 		if (XEmacLite_Send(&emaclite_inst, (u8 *) &ethernet_frame.destination_mac[0], ip_frame.total_length) == XST_SUCCESS)
@@ -521,6 +524,7 @@ int main(void)
 		}
 	#endif
 
+	platform_enable_interrupts();
 
 	#ifdef BROADCAST_ARP_REPLY
 		xil_printf("Sending ARP reply broadcast... ");
@@ -552,7 +556,7 @@ void print_mac_address(u8 * addr)
 
 void recv_callback(void * callbackReference)
 {
-	//xil_printf("Packet received!\r\n");
+	xil_printf("\t\tPacket received!\r\n");
 	*board_leds = 0b1010;
 	#ifdef RECEIVE_PACKET
 		recv_response = XEmacLite_Recv(&emaclite_inst, &recv_frame[0]);
@@ -561,7 +565,7 @@ void recv_callback(void * callbackReference)
 
 void sent_callback(void)
 {
-	//xil_printf("Packet sent!\r\n");
+	xil_printf("\t\tPacket sent!\r\n");
 	*board_leds = 0b0101;
 }
 
@@ -667,3 +671,20 @@ u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length)
 		return 0;
 	}
 #endif
+
+
+void platform_setup_interrupts()
+{
+	XIntc_Initialize(&intc_inst, XPAR_INTC_0_DEVICE_ID);
+	XIntc_Start(&intc_inst, XIN_REAL_MODE);
+
+	Xil_ExceptionInit();
+	Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler) XIntc_InterruptHandler, &intc_inst);
+	XIntc_EnableIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_ETHERNET_MAC_IP2INTC_IRPT_MASK);
+	XIntc_Enable(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID);
+}
+
+void platform_enable_interrupts()
+{
+	Xil_ExceptionEnable();
+}
