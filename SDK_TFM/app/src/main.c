@@ -530,8 +530,8 @@ int main(void)
 				arp_frame_t * arp_frame_p = (arp_frame_t *) &eth_frame_p->payload;
 				print_ip_address(arp_frame_p->target_ip);
 				xil_printf("\r\n");
-				//if(!memcmp(arp_frame_p->target_ip, my_ip_address, IP_ADDRESS_LENGTH))
-				if(!memcmp(arp_frame_p->target_ip, my_ip_address_inv, IP_ADDRESS_LENGTH))
+				if(!memcmp(arp_frame_p->target_ip, my_ip_address, IP_ADDRESS_LENGTH))
+				//if(!memcmp(arp_frame_p->target_ip, my_ip_address_inv, IP_ADDRESS_LENGTH))
 				{
 					xil_printf("for my ip... ");
 					if(arp_frame_p->operation_code == 1) /* ARP request */
