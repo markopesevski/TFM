@@ -6,11 +6,12 @@
 #include "mb_interface.h"
 #include "xil_exception.h"
 
-#define SOURCE_MAC_ADDRESS		{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
-#define SOURCE_MAC_ADDRESS_INV	{0x02, 0x01, 0x00, 0x35, 0x0a, 0x00}
+#define MY_MAC_ADDRESS			{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
+#define MY_MAC_ADDRESS_INV		{0x02, 0x01, 0x00, 0x35, 0x0a, 0x00}
 #define DESTINATION_MAC_ADDRESS	{0x34, 0x97, 0xF6, 0xDB, 0x8E, 0x1F}
 #define BROADCAST_MAC_ADDRESS	{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
-#define SOURCE_IP_ADDRESS		{192, 168, 1, 200}
+#define MY_IP_ADDRESS			{192, 168, 1, 200}
+#define MY_IP_ADDRESS_INV			{200, 1, 168, 192}
 #define DESTINATION_IP_ADDRESS	{192, 168, 1, 130}
 #define NET_MASK				{255, 255, 255, 0}
 #define GW_ADDRESS				{192, 168, 1, 1}
@@ -20,11 +21,14 @@
 	#define PHY_ADDRESS 0x1F
 #define LEDS_REGISTER 0x18
 #define BMCR_REGISTER 0x00
+#define MAC_ADDRESS_LENGTH 6
+#define IP_ADDRESS_LENGTH 4
+#define ETHERTYPE_LENGTH 2
 
 typedef enum
 {
 	IPv4 = 0x0800,
-	ARP = 0x0806,
+	ARP = 0x0608, /* really it is 0x0806, but for speed going to compare directly with 0x0608 because this processor is big endian */
 	WOL = 0x0842
 } ethertype_t;
 
@@ -49,7 +53,8 @@ typedef enum
 //#define GENERATE_ICMP_PING_REQUEST_PROGRAMATICALLY
 //#define SEND_ICMP_PING_GENERATED_PROGRAMATICALLY_TO_PC
 //#define SEND_ICMP_PING_REQUEST_COPYING
-#define BROADCAST_ARP_REPLY
+//#define BROADCAST_ARP_REPLY
+//#define DEBUGGING
 
 #ifdef SEND_ICMP_PING_REQUEST_COPYING
 	#define DESTINATION_MAC_OFFSET					0
@@ -113,11 +118,12 @@ u8 arp_response[] =
 };
 
 /* the mac address of the board. this should be unique per board */
-u8 my_mac_address[6] = SOURCE_MAC_ADDRESS;
-u8 destination_mac_address[6] = DESTINATION_MAC_ADDRESS;
-u8 broadcast_mac_address[6] = BROADCAST_MAC_ADDRESS;
-u8 source_ip_address[4] = SOURCE_IP_ADDRESS;
-u8 destination_ip_address[4] = DESTINATION_IP_ADDRESS;
+u8 my_mac_address[MAC_ADDRESS_LENGTH] = MY_MAC_ADDRESS;
+u8 destination_mac_address[MAC_ADDRESS_LENGTH] = DESTINATION_MAC_ADDRESS;
+u8 broadcast_mac_address[MAC_ADDRESS_LENGTH] = BROADCAST_MAC_ADDRESS;
+u8 my_ip_address[IP_ADDRESS_LENGTH] = MY_IP_ADDRESS;
+u8 my_ip_address_inv[IP_ADDRESS_LENGTH] = MY_IP_ADDRESS_INV;
+u8 destination_ip_address[IP_ADDRESS_LENGTH] = DESTINATION_IP_ADDRESS;
 u8 * board_leds = (u8*) LEDS_ADDR;
 XEmacLite emaclite_inst;
 XIntc intc_inst;
@@ -129,12 +135,10 @@ int response = XST_SUCCESS;
 
 typedef struct ethernet_frame_t
 {
-	u16 total_length;
-	u8 destination_mac[6];
-	u8 source_mac[6];
-	u8 ether_type[2];
+	u8 destination_mac[MAC_ADDRESS_LENGTH];
+	u8 source_mac[MAC_ADDRESS_LENGTH];
+	u16 ethertype;
 	u8 * payload;
-	u8 frame_checksum[4]; /* remember to send frame_checksum and payload in inverse order */
 } ethernet_frame_t;
 
 typedef struct ip_frame_t
@@ -164,18 +168,35 @@ typedef struct icmp_frame_t
 
 typedef struct
 {
+	u16 hardware_type;
+	u16 protocol_type;
+	u8 hardware_size;
+	u8 protocol_size;
+	u16 operation_code;
+	u8 sender_mac[MAC_ADDRESS_LENGTH];
+	u8 sender_ip[IP_ADDRESS_LENGTH];
+	u8 target_mac[MAC_ADDRESS_LENGTH];
+	u8 target_ip[IP_ADDRESS_LENGTH];
+} arp_frame_t;
+
+typedef struct
+{
 	Xboolean packet_received;
 	u16 packet_received_length;
 	Xboolean packet_sent;
 } system_t;
 
 system_t sys;
+ethernet_frame_t * eth_frame_p;
 void print_mac_address(u8 * addr);
+void print_ip_address(u8 * addr);
 void recv_callback(XEmacLite * callbackReference);
 void sent_callback(XEmacLite * callbackReference);
 u16 calculate_header_checksum_ip(ip_frame_t packet);
 u32 convert_ip_address(u8 * ip_array);
 u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length);
+eth_frame_mac_t check_eth_frame_destination_mac(ethernet_frame_t * frame_p);
+ethertype_t check_eth_frame_ethertype(ethernet_frame_t * frame_p);
 
 int main(void)
 {
@@ -433,7 +454,7 @@ int main(void)
 		ip_frame.flags_offset = (0b010 << 13) | 0b0000000000000; /* [15] reserved 0, [14] Don't Fragment, [13] More Fragments, [12:0] fragment offset */
 		ip_frame.ttl = 0xFF;
 		ip_frame.protocol = 0x01; /* 0x01 means ICMP (RFC790) */
-		ip_frame.source_ip = convert_ip_address(source_ip_address);
+		ip_frame.source_ip = convert_ip_address(my_ip_address);
 		ip_frame.destination_ip = convert_ip_address(destination_ip_address);
 		ip_frame.payload_data = (u8 *) &icmp_frame;
 		ip_frame.header_checksum = calculate_header_checksum_ip(ip_frame);
@@ -492,15 +513,61 @@ int main(void)
 		}
 	#endif
 
+	eth_frame_p = (ethernet_frame_t *) &buffer[0];
 	while (1)
 	{
 		/* if any data to process */
 		if (sys.packet_received)
 		{
-			if(check_eth_frame_destination_mac == BROADCAST)
+			/* clears flag */
+			sys.packet_received = FALSE;
+			xil_printf("Received frame... ");
+
+			/* checks if packet is ARP */
+			if (check_eth_frame_ethertype(eth_frame_p) == ARP)
+			{
+				xil_printf("ARP... ");
+				arp_frame_t * arp_frame_p = (arp_frame_t *) &eth_frame_p->payload;
+				print_ip_address(arp_frame_p->target_ip);
+				xil_printf("\r\n");
+				//if(!memcmp(arp_frame_p->target_ip, my_ip_address, IP_ADDRESS_LENGTH))
+				if(!memcmp(arp_frame_p->target_ip, my_ip_address_inv, IP_ADDRESS_LENGTH))
+				{
+					xil_printf("for my ip... ");
+					if(arp_frame_p->operation_code == 1) /* ARP request */
+					{
+						xil_printf("A REQUEST!\r\n");
+						arp_frame_p->operation_code = 2;
+						memcpy(arp_frame_p->target_ip, arp_frame_p->sender_ip, IP_ADDRESS_LENGTH);
+						memcpy(arp_frame_p->target_mac, arp_frame_p->sender_mac, MAC_ADDRESS_LENGTH);
+						memcpy(arp_frame_p->sender_ip, my_ip_address, IP_ADDRESS_LENGTH);
+						memcpy(arp_frame_p->sender_mac, my_mac_address, MAC_ADDRESS_LENGTH);
+						memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
+						memcpy(eth_frame_p->destination_mac, my_mac_address, MAC_ADDRESS_LENGTH);
+						xil_printf("Responding to ARP... ");
+						if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14) != XST_SUCCESS)
+						{
+							xil_printf("Error!\r\n");
+						}
+						xil_printf("OK!\r\n");
+					}
+				}
+			}
+
+			/* checks if broadcast or packet destined for us */
+			if (check_eth_frame_destination_mac(eth_frame_p) == BROADCAST)
 			{
 
 			}
+			else if (check_eth_frame_destination_mac(eth_frame_p) == MINE)
+			{
+
+			}
+		}
+		if(sys.packet_sent)
+		{
+			/* clears flag */
+			sys.packet_sent = FALSE;
 		}
 	}
 
@@ -509,13 +576,13 @@ int main(void)
 	return 0;
 }
 
-eth_frame_mac_t check_eth_frame_destination_mac(u8 * frame)
+eth_frame_mac_t check_eth_frame_destination_mac(ethernet_frame_t * frame_p)
 {
-	if (!memcmp(&frame[0], &my_mac_address[0], 6))
+	if (!memcmp(frame_p->destination_mac, my_mac_address, MAC_ADDRESS_LENGTH))
 	{
 		return MINE;
 	}
-	else if (!memcmp(&frame[0], &broadcast_mac_address[0], 6))
+	else if (!memcmp(frame_p->destination_mac, broadcast_mac_address, MAC_ADDRESS_LENGTH))
 	{
 		return BROADCAST;
 	}
@@ -525,9 +592,19 @@ eth_frame_mac_t check_eth_frame_destination_mac(u8 * frame)
 	}
 }
 
+ethertype_t check_eth_frame_ethertype(ethernet_frame_t * frame_p)
+{
+	return (ethertype_t) frame_p->ethertype;
+}
+
 void print_mac_address(u8 * addr)
 {
 	xil_printf("%02x:%02x:%02x:%02x:%02x:%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+}
+
+void print_ip_address(u8 * addr)
+{
+	xil_printf("%03d.%03d.%03d.%03d", addr[0], addr[1], addr[2], addr[3]);
 }
 
 void recv_callback(XEmacLite * callbackReference)
@@ -538,7 +615,7 @@ void recv_callback(XEmacLite * callbackReference)
 		sys.packet_received_length = XEmacLite_Recv(&emaclite_inst, &buffer[0]);
 		sys.packet_received = TRUE;
 		#ifdef DEBUGGING
-			xil_printf("Packet received: len = %d\r\n", packetlen);
+			xil_printf("Packet received: len = %d\r\n", sys.packet_received_length);
 		#endif
 	}
 }
