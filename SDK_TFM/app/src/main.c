@@ -28,7 +28,7 @@
 typedef enum
 {
 	IPv4 = 0x0800,
-	ARP = 0x0608, /* really it is 0x0806, but for speed going to compare directly with 0x0608 because this processor is big endian */
+	ARP = 0x0806, /* really it is 0x0806, but for speed going to compare directly with 0x0608 because this processor is big endian */
 	WOL = 0x0842
 } ethertype_t;
 
@@ -133,15 +133,15 @@ u16 packetlen = 0;
 u16 data = 0;
 int response = XST_SUCCESS;
 
-typedef struct ethernet_frame_t
+typedef struct __attribute__((__packed__))
 {
 	u8 destination_mac[MAC_ADDRESS_LENGTH];
 	u8 source_mac[MAC_ADDRESS_LENGTH];
-	u16 ethertype;
+	u8 ethertype[ETHERTYPE_LENGTH];
 	u8 * payload;
 } ethernet_frame_t;
 
-typedef struct ip_frame_t
+typedef struct __attribute__((__packed__))
 {
 	u8 version_header_length;
 	u8 type_of_service;
@@ -156,7 +156,7 @@ typedef struct ip_frame_t
 	u8 * payload_data;
 } ip_frame_t;
 
-typedef struct icmp_frame_t
+typedef struct __attribute__((__packed__))
 {
 	u16 total_length;
 	u8 type_of_message;
@@ -166,7 +166,7 @@ typedef struct icmp_frame_t
 	u8 * payload_data;
 } icmp_frame_t;
 
-typedef struct
+typedef struct __attribute__((__packed__))
 {
 	u16 hardware_type;
 	u16 protocol_type;
@@ -521,29 +521,22 @@ int main(void)
 		{
 			/* clears flag */
 			sys.packet_received = FALSE;
-			xil_printf("Received frame... ");
 
 			/* checks if packet is ARP */
 			if (check_eth_frame_ethertype(eth_frame_p) == ARP)
 			{
-				xil_printf("ARP... ");
 				arp_frame_t * arp_frame_p = (arp_frame_t *) &eth_frame_p->payload;
-				print_ip_address(arp_frame_p->target_ip);
-				xil_printf("\r\n");
 				if(!memcmp(arp_frame_p->target_ip, my_ip_address, IP_ADDRESS_LENGTH))
-				//if(!memcmp(arp_frame_p->target_ip, my_ip_address_inv, IP_ADDRESS_LENGTH))
 				{
-					xil_printf("for my ip... ");
-					if(arp_frame_p->operation_code == 1) /* ARP request */
+					if(arp_frame_p->operation_code == (0x01<<8)) /* ARP request, it is a 1 yes but in the high byte, same goes for 2 */
 					{
-						xil_printf("A REQUEST!\r\n");
-						arp_frame_p->operation_code = 2;
+						arp_frame_p->operation_code = 0x02<<8; /* ARP reply, it is a 2 but in the high byte */
 						memcpy(arp_frame_p->target_ip, arp_frame_p->sender_ip, IP_ADDRESS_LENGTH);
 						memcpy(arp_frame_p->target_mac, arp_frame_p->sender_mac, MAC_ADDRESS_LENGTH);
 						memcpy(arp_frame_p->sender_ip, my_ip_address, IP_ADDRESS_LENGTH);
 						memcpy(arp_frame_p->sender_mac, my_mac_address, MAC_ADDRESS_LENGTH);
 						memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
-						memcpy(eth_frame_p->destination_mac, my_mac_address, MAC_ADDRESS_LENGTH);
+						memcpy(eth_frame_p->source_mac, my_mac_address, MAC_ADDRESS_LENGTH);
 						xil_printf("Responding to ARP... ");
 						if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14) != XST_SUCCESS)
 						{
@@ -594,7 +587,7 @@ eth_frame_mac_t check_eth_frame_destination_mac(ethernet_frame_t * frame_p)
 
 ethertype_t check_eth_frame_ethertype(ethernet_frame_t * frame_p)
 {
-	return (ethertype_t) frame_p->ethertype;
+	return (ethertype_t) (frame_p->ethertype[0]<<8|frame_p->ethertype[1]);
 }
 
 void print_mac_address(u8 * addr)
