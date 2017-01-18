@@ -24,6 +24,7 @@
 #define MAC_ADDRESS_LENGTH 6
 #define IP_ADDRESS_LENGTH 4
 #define ETHERTYPE_LENGTH 2
+#define ETHERNET_FCS_LENGTH 4
 
 typedef enum
 {
@@ -203,11 +204,12 @@ void print_mac_address(u8 * addr);
 void print_ip_address(u8 * addr);
 void recv_callback(XEmacLite * callbackReference);
 void sent_callback(XEmacLite * callbackReference);
-u16 calculate_header_checksum_ip(ip_frame_t packet);
+u16 calculate_header_checksum_ip(ip_frame_t * packet);
 u32 convert_ip_address(u8 * ip_array);
-u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length);
+u16 calculate_header_checksum_icmp(icmp_frame_t * packet, u32 data_length);
 eth_frame_mac_t check_eth_frame_destination_mac(ethernet_frame_t * frame_p);
 ethertype_t check_eth_frame_ethertype(ethernet_frame_t * frame_p);
+u16 calculate_checksum_from_to(u32 * address_from, u32 * address_to);
 
 int main(void)
 {
@@ -570,21 +572,23 @@ int main(void)
 					if((icmp_type_t) icmp_frame_p->type_of_message == ECHO_REQUEST && icmp_frame_p->code == 0x00)
 					{
 						icmp_frame_p->type_of_message = ECHO_REPLY;
+						memcpy(&ip_frame_p->destination_ip, &ip_frame_p->source_ip, IP_ADDRESS_LENGTH);
+						memcpy(&ip_frame_p->source_ip, &my_ip_address, IP_ADDRESS_LENGTH);
+						memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
+						memcpy(eth_frame_p->source_mac, my_mac_address, MAC_ADDRESS_LENGTH);
+						icmp_frame_p->header_checksum = calculate_checksum_from_to(&icmp_frame_p->type_of_message,&buffer[sys.packet_received_length-ETHERNET_FCS_LENGTH]);
+						#ifdef DEBUGGING
+							xil_printf("Responding to ping... ");
+							if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14) != XST_SUCCESS)
+							{
+								xil_printf("Error!\r\n");
+							}
+							xil_printf("OK!\r\n");
+						#else
+							//XEmacLite_Send(&emaclite_inst, buffer, sizeof(ip_frame_t) + sizeof(icmp_frame_t) + 14);
+							XEmacLite_Send(&emaclite_inst, buffer, sys.packet_received_length - ETHERNET_FCS_LENGTH);
+						#endif
 					}
-					memcpy(&ip_frame_p->destination_ip, &ip_frame_p->source_ip, IP_ADDRESS_LENGTH);
-					memcpy(&ip_frame_p->source_ip, &my_ip_address, IP_ADDRESS_LENGTH);
-					memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
-					memcpy(eth_frame_p->source_mac, my_mac_address, MAC_ADDRESS_LENGTH);
-					#ifdef DEBUGGING
-						xil_printf("Responding to ping... ");
-						if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14) != XST_SUCCESS)
-						{
-							xil_printf("Error!\r\n");
-						}
-						xil_printf("OK!\r\n");
-					#else
-						XEmacLite_Send(&emaclite_inst, buffer, sizeof(ip_frame_t) + 14);
-					#endif
 				}
 			}
 
@@ -663,20 +667,20 @@ void sent_callback(XEmacLite * callbackReference)
 	}
 }
 
-u16 calculate_header_checksum_ip(ip_frame_t packet)
+u16 calculate_header_checksum_ip(ip_frame_t * packet)
 {
 	u32 sum = 0;
 	u16 ret_value = 0;
 
-	sum =	packet.version_header_length +
-			packet.type_of_service +
-			packet.total_length +
-			packet.identification +
-			packet.flags_offset +
-			packet.ttl +
-			packet.protocol +
-			packet.source_ip +
-			packet.destination_ip;
+	sum =	packet->version_header_length +
+			packet->type_of_service +
+			packet->total_length +
+			packet->identification +
+			packet->flags_offset +
+			packet->ttl +
+			packet->protocol +
+			packet->source_ip +
+			packet->destination_ip;
 
 	ret_value = ~((sum && 0xFF00) + (sum && 0x00FF));
 	return ret_value;
@@ -687,19 +691,34 @@ u32 convert_ip_address(u8 * ip_array)
 	return (ip_array[3] << 24) | (ip_array[2] << 16) | (ip_array[1] << 8) | (ip_array[0]);
 }
 
-u16 calculate_header_checksum_icmp(icmp_frame_t packet, u32 data_length)
+u16 calculate_header_checksum_icmp(icmp_frame_t * packet, u32 data_length)
 {
 	u32 sum = 0;
 	u32 i = 0;
 	u16 ret_value = 0;
 
-	sum =	packet.type_of_message +
-			packet.code +
-			packet.header_data;
+	sum =	packet->type_of_message +
+			packet->code +
+			packet->header_data;
 
 	for (i = 0; i < data_length; i++)
 	{
-		sum += packet.payload_data[i];
+		sum += packet->payload_data[i];
+	}
+
+	ret_value = ~((sum && 0xFF00) + (sum && 0x00FF));
+	return ret_value;
+}
+
+u16 calculate_checksum_from_to(u32 * address_from, u32 * address_to)
+{
+	u32 * i = 0;
+	u32 sum = 0;
+	u16 ret_value = 0;
+
+	for (i = address_from; i <= address_to; i++)
+	{
+		sum += *i;
 	}
 
 	ret_value = ~((sum && 0xFF00) + (sum && 0x00FF));
