@@ -46,6 +46,18 @@ typedef enum
 	UNKNOWN = 0x00
 } eth_frame_mac_t;
 
+typedef enum
+{
+	ICMP = 0x01,
+	UDP = 0x11
+} ipv4_protocol_t;
+
+typedef enum
+{
+	ECHO_REPLY = 0x00, /* type field is enumerated here, code field is required 0 for both */
+	ECHO_REQUEST = 0x08
+} icmp_type_t;
+
 //#define READ_PHY_REGISTERS
 //#define PLAY_WITH_PHY_LEDS
 //#define CHECK_LEDS
@@ -158,7 +170,6 @@ typedef struct __attribute__((__packed__))
 
 typedef struct __attribute__((__packed__))
 {
-	u16 total_length;
 	u8 type_of_message;
 	u8 code;
 	u16 header_checksum;
@@ -528,22 +539,52 @@ int main(void)
 				arp_frame_t * arp_frame_p = (arp_frame_t *) &eth_frame_p->payload;
 				if(!memcmp(arp_frame_p->target_ip, my_ip_address, IP_ADDRESS_LENGTH))
 				{
-					if(arp_frame_p->operation_code == (0x01<<8)) /* ARP request, it is a 1 yes but in the high byte, same goes for 2 */
+					if(arp_frame_p->operation_code == (0x0100)) /* ARP request, it is a 1 yes but in the high byte, same goes for 2 */
 					{
-						arp_frame_p->operation_code = 0x02<<8; /* ARP reply, it is a 2 but in the high byte */
+						arp_frame_p->operation_code = 0x0200; /* ARP reply, it is a 2 but in the high byte */
 						memcpy(arp_frame_p->target_ip, arp_frame_p->sender_ip, IP_ADDRESS_LENGTH);
 						memcpy(arp_frame_p->target_mac, arp_frame_p->sender_mac, MAC_ADDRESS_LENGTH);
 						memcpy(arp_frame_p->sender_ip, my_ip_address, IP_ADDRESS_LENGTH);
 						memcpy(arp_frame_p->sender_mac, my_mac_address, MAC_ADDRESS_LENGTH);
 						memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
 						memcpy(eth_frame_p->source_mac, my_mac_address, MAC_ADDRESS_LENGTH);
-						xil_printf("Responding to ARP... ");
+						#ifdef DEBUGGING
+							xil_printf("Responding to ARP... ");
+							if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14) != XST_SUCCESS)
+							{
+								xil_printf("Error!\r\n");
+							}
+							xil_printf("OK!\r\n");
+						#else
+							XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14);
+						#endif
+					}
+				}
+			}
+			else if (check_eth_frame_ethertype(eth_frame_p) == IPv4)
+			{
+				ip_frame_t * ip_frame_p = (ip_frame_t *) &eth_frame_p->payload;
+				if((ipv4_protocol_t) ip_frame_p->protocol == ICMP)
+				{
+					icmp_frame_t * icmp_frame_p = (icmp_frame_t *) &ip_frame_p->payload_data;
+					if((icmp_type_t) icmp_frame_p->type_of_message == ECHO_REQUEST && icmp_frame_p->code == 0x00)
+					{
+						icmp_frame_p->type_of_message = ECHO_REPLY;
+					}
+					memcpy(&ip_frame_p->destination_ip, &ip_frame_p->source_ip, IP_ADDRESS_LENGTH);
+					memcpy(&ip_frame_p->source_ip, &my_ip_address, IP_ADDRESS_LENGTH);
+					memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
+					memcpy(eth_frame_p->source_mac, my_mac_address, MAC_ADDRESS_LENGTH);
+					#ifdef DEBUGGING
+						xil_printf("Responding to ping... ");
 						if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14) != XST_SUCCESS)
 						{
 							xil_printf("Error!\r\n");
 						}
 						xil_printf("OK!\r\n");
-					}
+					#else
+						XEmacLite_Send(&emaclite_inst, buffer, sizeof(ip_frame_t) + 14);
+					#endif
 				}
 			}
 
