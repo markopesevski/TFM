@@ -59,6 +59,14 @@ typedef enum
 	ECHO_REQUEST = 0x08
 } icmp_type_t;
 
+typedef enum
+{
+	ARP_REQUEST_WINDOWS = 0x0001,
+	ARP_REPLY_WINDOWS = 0x0002,
+	ARP_REQUEST_LINUX = 0x0100,
+	ARP_REPLY_LINUX = 0x0200
+} arp_opcodes_t;
+
 //#define READ_PHY_REGISTERS
 //#define PLAY_WITH_PHY_LEDS
 //#define CHECK_LEDS
@@ -209,7 +217,7 @@ u32 convert_ip_address(u8 * ip_array);
 u16 calculate_header_checksum_icmp(icmp_frame_t * packet, u32 data_length);
 eth_frame_mac_t check_eth_frame_destination_mac(ethernet_frame_t * frame_p);
 ethertype_t check_eth_frame_ethertype(ethernet_frame_t * frame_p);
-u16 calculate_checksum_from_to(u32 * address_from, u32 * address_to);
+u16 calculate_checksum_from_to(u8 * address_from, u8 * address_to);
 
 int main(void)
 {
@@ -541,26 +549,33 @@ int main(void)
 				arp_frame_t * arp_frame_p = (arp_frame_t *) &eth_frame_p->payload;
 				if(!memcmp(arp_frame_p->target_ip, my_ip_address, IP_ADDRESS_LENGTH))
 				{
-					if(arp_frame_p->operation_code == (0x0100)) /* ARP request, it is a 1 yes but in the high byte, same goes for 2 */
+					if(arp_frame_p->operation_code == (ARP_REQUEST_LINUX)) /* ARP request, it is a 1 yes but in the high byte, same goes for 2 */
 					{
-						arp_frame_p->operation_code = 0x0200; /* ARP reply, it is a 2 but in the high byte */
-						memcpy(arp_frame_p->target_ip, arp_frame_p->sender_ip, IP_ADDRESS_LENGTH);
-						memcpy(arp_frame_p->target_mac, arp_frame_p->sender_mac, MAC_ADDRESS_LENGTH);
-						memcpy(arp_frame_p->sender_ip, my_ip_address, IP_ADDRESS_LENGTH);
-						memcpy(arp_frame_p->sender_mac, my_mac_address, MAC_ADDRESS_LENGTH);
-						memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
-						memcpy(eth_frame_p->source_mac, my_mac_address, MAC_ADDRESS_LENGTH);
-						#ifdef DEBUGGING
-							xil_printf("Responding to ARP... ");
-							if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14) != XST_SUCCESS)
-							{
-								xil_printf("Error!\r\n");
-							}
-							xil_printf("OK!\r\n");
-						#else
-							XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14);
-						#endif
+						arp_frame_p->operation_code = ARP_REPLY_LINUX; /* ARP reply, it is a 2 but in the high byte */
 					}
+					else if(arp_frame_p->operation_code == (ARP_REQUEST_WINDOWS))
+					{
+						arp_frame_p->operation_code = ARP_REPLY_WINDOWS;
+					}
+
+					memcpy(arp_frame_p->target_ip, arp_frame_p->sender_ip, IP_ADDRESS_LENGTH);
+					memcpy(arp_frame_p->target_mac, arp_frame_p->sender_mac, MAC_ADDRESS_LENGTH);
+					memcpy(arp_frame_p->sender_ip, my_ip_address, IP_ADDRESS_LENGTH);
+					memcpy(arp_frame_p->sender_mac, my_mac_address, MAC_ADDRESS_LENGTH);
+					memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
+					memcpy(eth_frame_p->source_mac, my_mac_address, MAC_ADDRESS_LENGTH);
+					#ifdef DEBUGGING
+						xil_printf("Responding to ARP... ");
+						//if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14) != XST_SUCCESS)
+						if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + sizeof(ethernet_frame_t)) != XST_SUCCESS)
+						{
+							xil_printf("Error!\r\n");
+						}
+						xil_printf("OK!\r\n");
+					#else
+						//XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14);
+						XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + sizeof(ethernet_frame_t));
+					#endif
 				}
 			}
 			else if (check_eth_frame_ethertype(eth_frame_p) == IPv4)
@@ -571,15 +586,26 @@ int main(void)
 					icmp_frame_t * icmp_frame_p = (icmp_frame_t *) &ip_frame_p->payload_data;
 					if((icmp_type_t) icmp_frame_p->type_of_message == ECHO_REQUEST && icmp_frame_p->code == 0x00)
 					{
+						#ifdef DEBUGGING
+							u16 i = 0;
+						#endif
 						icmp_frame_p->type_of_message = ECHO_REPLY;
 						memcpy(&ip_frame_p->destination_ip, &ip_frame_p->source_ip, IP_ADDRESS_LENGTH);
 						memcpy(&ip_frame_p->source_ip, &my_ip_address, IP_ADDRESS_LENGTH);
 						memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
 						memcpy(eth_frame_p->source_mac, my_mac_address, MAC_ADDRESS_LENGTH);
-						icmp_frame_p->header_checksum = calculate_checksum_from_to(&icmp_frame_p->type_of_message,&buffer[sys.packet_received_length-ETHERNET_FCS_LENGTH]);
+						icmp_frame_p->header_checksum = 0x0000;
+						#ifdef DEBUGGING
+							xil_printf("Packet length: %d\r\n", sys.packet_received_length);
+							for (i = 0; i< sys.packet_received_length; i++)
+							{
+								xil_printf("0x%02x\r\n", buffer[i]);
+							}
+						#endif
+						icmp_frame_p->header_checksum = calculate_checksum_from_to((u8*)&icmp_frame_p->type_of_message,(u8*)&buffer[sys.packet_received_length-ETHERNET_FCS_LENGTH]);
 						#ifdef DEBUGGING
 							xil_printf("Responding to ping... ");
-							if(XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + 14) != XST_SUCCESS)
+							if(XEmacLite_Send(&emaclite_inst, buffer, sys.packet_received_length - ETHERNET_FCS_LENGTH) != XST_SUCCESS)
 							{
 								xil_printf("Error!\r\n");
 							}
@@ -710,19 +736,35 @@ u16 calculate_header_checksum_icmp(icmp_frame_t * packet, u32 data_length)
 	return ret_value;
 }
 
-u16 calculate_checksum_from_to(u32 * address_from, u32 * address_to)
+u16 calculate_checksum_from_to(u8 * address_from, u8 * address_to)
 {
-	u32 * i = 0;
+	u8 * i = 0;
 	u32 sum = 0;
 	u16 ret_value = 0;
+	u16 aux_swap = 0;
 
-	for (i = address_from; i <= address_to; i++)
+	#ifdef DEBUGGING
+		xil_printf("Checksum calculation\r\n");
+	#endif
+
+	for (i = address_from; i < address_to; i=i+2)
 	{
-		sum += *i;
+		#ifdef DEBUGGING
+			xil_printf("0x%04x + ", (*i<<8)|(*(i+1)));
+		#endif
+		sum += (*i<<8)|(*(i+1));
 	}
 
-	ret_value = ~((sum && 0xFF00) + (sum && 0x00FF));
-	return ret_value;
+	#ifdef DEBUGGING
+		xil_printf("\r\nSum = 0x%x\r\n", sum);
+		xil_printf("Sum & 0xFF0000 = 0x%x\r\n", sum & 0xFF0000);
+		xil_printf("Sum & 0x00FFFF = 0x%x\r\n", sum & 0x00FFFF);
+		//xil_printf("Sum & 0xFF0000 + Sum & 0x00FFFF = 0x%x\r\n" (sum & 0xFF0000) + sum & 0x00FFFF);
+	#endif
+
+	ret_value = ~(((sum & 0xFF0000)>>16) + (sum & 0x00FFFF));
+	aux_swap = ((ret_value & 0xFF00) >> 8) | ((ret_value & 0x00FF) << 8);
+	return aux_swap;
 }
 
 #ifdef SEND_ICMP_PING_REQUEST_COPYING
