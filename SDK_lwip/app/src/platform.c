@@ -2,67 +2,38 @@
 
 volatile int TcpFastTmrFlag = 0;
 volatile int TcpSlowTmrFlag = 0;
-volatile int fastestTmrFlag = 0;
-volatile int fastestTmrCount = 0;
 
-#if LWIP_DHCP==1
-	volatile int dhcp_timoutcntr = 24;
-#endif //LWIP_DHCP
-
-volatile int TxPerfConnMonCntr = 0;
+static unsigned rxperf_port = 5001;	/* iperf default port */
+static unsigned rxperf_server_running = 0;
 
 void timer_callback()
 {
 	static int odd = 1;
-	#if LWIP_DHCP==1
-		static int dhcp_timer = 0;
-	#endif //LWIP_DHCP
 
-	fastestTmrFlag = 1;
+	TcpFastTmrFlag = 1;
 
-	if(fastestTmrCount >= 3)
+	odd = !odd;
+	if (odd)
 	{
-		fastestTmrCount = 0;
-		TcpFastTmrFlag = 1;
-
-		odd = !odd;
-		if (odd)
-		{
-			#if LWIP_DHCP==1
-				dhcp_timer++;
-				dhcp_timoutcntr--;
-			#endif //LWIP_DHCP
-
-			TcpSlowTmrFlag = 1;
-
-			#if LWIP_DHCP==1
-				dhcp_fine_tmr();
-				if (dhcp_timer >= 120)
-				{
-					dhcp_coarse_tmr();
-					dhcp_timer = 0;
-				}
-			#endif //LWIP_DHCP
-		}
+		TcpSlowTmrFlag = 1;
 	}
-
-	fastestTmrCount++;
 }
 
 void xadapter_timer_handler(void *p)
 {
-	timer_callback();
-
 	/* Load timer, clear interrupt bit */
 	XTmrCtr_SetControlStatusReg(PLATFORM_TIMER_BASEADDR, 0, XTC_CSR_INT_OCCURED_MASK | XTC_CSR_LOAD_MASK);
 	XTmrCtr_SetControlStatusReg(PLATFORM_TIMER_BASEADDR, 0, XTC_CSR_ENABLE_TMR_MASK | XTC_CSR_ENABLE_INT_MASK | XTC_CSR_AUTO_RELOAD_MASK | XTC_CSR_DOWN_COUNT_MASK);
 
 	/* Clear interrupt bit */
 	XIntc_AckIntr(XPAR_INTC_0_BASEADDR, PLATFORM_TIMER_INTERRUPT_MASK);
+
+	/* Call callback funcion */
+	timer_callback();
 }
 
-//#define TIMER_TLR (XPAR_TMRCTR_0_CLOCK_FREQ_HZ / 4)
-#define TIMER_TLR (XPAR_TMRCTR_0_CLOCK_FREQ_HZ / 12)
+#define TIMER_TLR (XPAR_TMRCTR_0_CLOCK_FREQ_HZ / 4)
+//#define TIMER_TLR (XPAR_TMRCTR_0_CLOCK_FREQ_HZ / 12)
 void platform_setup_timer()
 {
 	/* set the number of cycles the timer counts before interrupting */
@@ -122,7 +93,6 @@ void disable_caches()
 int init_platform()
 {
 	enable_caches();
-
 	platform_setup_interrupts();
 
 	return 0;
@@ -132,8 +102,6 @@ void cleanup_platform()
 {
 	disable_caches();
 }
-
-
 
 void print_ip(char *msg, struct ip_addr *ip)
 {
@@ -148,53 +116,66 @@ void print_ip_settings(struct ip_addr *ip, struct ip_addr *mask, struct ip_addr 
 	print_ip("Gateway : ", gw);
 }
 
-void print_headers()
-{
-    xil_printf("\r\n");
-    xil_printf("%20s %6s %s\r\n", "Server", "Port", "Connect With..");
-    xil_printf("%20s %6s %s\r\n", "--------------------", "------", "--------------------");
-
-    if (INCLUDE_RXPERF_SERVER)
-        print_rxperf_app_header();
-
-    if (INCLUDE_TXPERF_CLIENT)
-        print_txperf_app_header();
-
-    if (INCLUDE_TXUPERF_CLIENT)
-    	print_utxperf_app_header();
-
-    if (INCLUDE_RXUPERF_CLIENT)
-    	print_urxperf_app_header();
-
-    xil_printf("\r\n");
-}
-
 void start_applications()
 {
-    if (INCLUDE_RXPERF_SERVER)
-        start_rxperf_application();
+    struct tcp_pcb *pcb;
+    err_t err;
 
-    if (INCLUDE_TXPERF_CLIENT)
-        start_txperf_application();
+    /* create new TCP PCB structure */
+    pcb = tcp_new();
+    if (!pcb)
+    {
+    	xil_printf("rxperf: Error creating PCB. Out of Memory\r\n");
+    	return;
+    }
 
-    if (INCLUDE_TXUPERF_CLIENT)
-    	start_utxperf_application();
+    /* bind to iperf @port */
+    err = tcp_bind(pcb, IP_ADDR_ANY, rxperf_port);
+    if (err != ERR_OK)
+    {
+    	xil_printf("rxperf: Unable to bind to port %d: err = %d\r\n", rxperf_port, err);
+    	return;
+    }
 
-    if (INCLUDE_RXUPERF_CLIENT)
-    	start_urxperf_application();
+    /* we do not need any arguments to callback functions :) */
+    tcp_arg(pcb, NULL);
+
+    /* listen for connections */
+    pcb = tcp_listen(pcb);
+    if (!pcb)
+    {
+    	xil_printf("rxperf: Out of memory while tcp_listen\r\n");
+    	return;
+    }
+
+    /* specify callback to use for incoming connections */
+    tcp_accept(pcb, rxperf_accept_callback);
+
+    rxperf_server_running = 1;
+
+    return;
 }
 
-void transfer_data()
+static err_t rxperf_recv_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
-    if (INCLUDE_RXPERF_SERVER)
-        transfer_rxperf_data();
+    /* close socket if the peer has sent the FIN packet  */
+    if (p == NULL) {
+        tcp_close(tpcb);
+        return ERR_OK;
+    }
 
-    if (INCLUDE_TXPERF_CLIENT)
-        transfer_txperf_data();
+    /* all we do is say we've received the packet */
+    /* we don't actually make use of it */
+    tcp_recved(tpcb, p->tot_len);
 
-    if (INCLUDE_TXUPERF_CLIENT)
-    	transfer_utxperf_data();
+    pbuf_free(p);
+    return ERR_OK;
+}
 
-    if (INCLUDE_RXUPERF_CLIENT)
-    	transfer_urxperf_data();
+err_t rxperf_accept_callback(void *arg, struct tcp_pcb *newpcb, err_t err)
+{
+    xil_printf("rxperf: Connection Accepted\r\n");
+    tcp_recv(newpcb, rxperf_recv_callback);
+
+    return ERR_OK;
 }

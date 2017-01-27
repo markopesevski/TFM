@@ -12,12 +12,21 @@
 	#include "lwip/tcp.h"
 	#include "lwip/inet.h"
 	#include "lwip/ip_addr.h"
+	#include "lwip/err.h"
+	#include "lwip/tcp.h"
 	#include "xil_printf.h"
+	#include <stdio.h>
+	#include <string.h>
 
 	#define INCLUDE_RXPERF_SERVER  0
 	#define INCLUDE_TXPERF_CLIENT  0
 	#define INCLUDE_TXUPERF_CLIENT 0
 	#define INCLUDE_RXUPERF_CLIENT 0
+
+	/* timer configuration */
+	#define PLATFORM_TIMER_BASEADDR XPAR_TMRCTR_0_BASEADDR
+	#define PLATFORM_TIMER_INTERRUPT_INTR XPAR_INTC_0_TMRCTR_0_VEC_ID
+	#define PLATFORM_TIMER_INTERRUPT_MASK (1 << PLATFORM_TIMER_INTERRUPT_INTR)
 
 	#define VDD_ADC 3.3
 
@@ -56,6 +65,8 @@
 	void print_headers();
 	void start_applications();
 	void transfer_data();
+	static err_t rxperf_recv_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
+	err_t rxperf_accept_callback(void *arg, struct tcp_pcb *newpcb, err_t err);
 
 	#if LWIP_DHCP==1
 		void dhcp_fine_tmr();
