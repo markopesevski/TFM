@@ -26,6 +26,9 @@
 #define ETHERTYPE_LENGTH 2
 #define ETHERNET_FCS_LENGTH 4
 
+/* host to network byte (big-endian) */
+#define PP_HTONS(x) ((((x) & 0xff) << 8) | (((x) & 0xff00) >> 8))
+
 typedef enum
 {
 	IPv4 = 0x0800,
@@ -274,11 +277,18 @@ int main(void)
 					icmp_frame_t * icmp_frame_p = (icmp_frame_t *) &ip_frame_p->payload_data;
 					if(icmp_frame_p->type_of_message == ECHO_REQUEST)
 					{
+						if (icmp_frame_p->header_checksum >= PP_HTONS(0xffffU - (ECHO_REQUEST << 8)))
+						{
+							icmp_frame_p->header_checksum += PP_HTONS(ECHO_REQUEST << 8) + 1;
+						}
+						else
+						{
+							icmp_frame_p->header_checksum += PP_HTONS(ECHO_REQUEST << 8);
+						}
+
 						icmp_frame_p->type_of_message = ECHO_REPLY;
 						memcpy(&ip_frame_p->destination_ip, &ip_frame_p->source_ip, IP_ADDRESS_LENGTH);
 						memcpy(&ip_frame_p->source_ip, &my_ip_address, IP_ADDRESS_LENGTH);
-						icmp_frame_p->header_checksum = 0x0000;
-						calculate_checksum_from_to(icmp_frame_p, &icmp_frame_p->type_of_message, &buffer[sys.packet_received_length-ETHERNET_FCS_LENGTH]);
 						XEmacLite_Send(&emaclite_inst, buffer, sys.packet_received_length - ETHERNET_FCS_LENGTH);
 					}
 				}
@@ -324,22 +334,4 @@ void sent_callback(XEmacLite * callbackReference)
 		XIntc_AckIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_ETHERNET_MAC_IP2INTC_IRPT_MASK);
 		sys.packet_sent = TRUE;
 	//}
-}
-
-void calculate_checksum_from_to(icmp_frame_t * frame, u8 * address_from, u8 * address_to)
-{
-	u8 * i = 0;
-	u32 sum = 0;
-	u16 ret_value = 0;
-	u16 aux_swap = 0;
-
-	for (i = address_from; i < address_to; i=i+2)
-	{
-		sum += (*i<<8)|(*(i+1));
-	}
-
-	ret_value = ~(((sum & 0xFF0000)>>16) + (sum & 0x00FFFF));
-	aux_swap = ((ret_value & 0xFF00) >> 8) | ((ret_value & 0x00FF) << 8);
-	frame->header_checksum = aux_swap;
-	return;
 }
