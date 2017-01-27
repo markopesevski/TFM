@@ -65,7 +65,7 @@
 	void print_headers();
 	void start_applications();
 	void transfer_data();
-	static err_t rxperf_recv_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
+	err_t rxperf_recv_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
 	err_t rxperf_accept_callback(void *arg, struct tcp_pcb *newpcb, err_t err);
 
 	#if LWIP_DHCP==1

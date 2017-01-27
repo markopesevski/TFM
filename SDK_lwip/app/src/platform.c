@@ -156,13 +156,14 @@ void start_applications()
     return;
 }
 
-static err_t rxperf_recv_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
+err_t rxperf_recv_callback(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 {
     /* close socket if the peer has sent the FIN packet  */
     if (p == NULL) {
         tcp_close(tpcb);
         return ERR_OK;
     }
+    xil_printf("receive callback\r\n");
 
     /* all we do is say we've received the packet */
     /* we don't actually make use of it */
