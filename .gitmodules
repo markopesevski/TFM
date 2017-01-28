@@ -1,0 +1,8 @@
+[submodule "subm_lwip"]
+	path = lwip
+	url = https://github.com/markopesevski/TFM.git
+	branch = lwip
+[submodule "subm_no-lwip"]
+	path = no-lwip
+	url = https://github.com/markopesevski/TFM.git
+	branch = no-lwip
