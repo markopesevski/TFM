@@ -3,335 +3,276 @@
 #include "xil_printf.h"
 #include "xemaclite.h"
 #include "xintc.h"
-#include "mb_interface.h"
 #include "xil_exception.h"
 
-#define MY_MAC_ADDRESS			{0x00, 0x0a, 0x35, 0x00, 0x01, 0x02}
-#define MY_MAC_ADDRESS_INV		{0x02, 0x01, 0x00, 0x35, 0x0a, 0x00}
-#define DESTINATION_MAC_ADDRESS	{0x34, 0x97, 0xF6, 0xDB, 0x8E, 0x1F}
-#define BROADCAST_MAC_ADDRESS	{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
-#define MY_IP_ADDRESS			{192, 168, 1, 200}
-#define MY_IP_ADDRESS_INV			{200, 1, 168, 192}
-#define DESTINATION_IP_ADDRESS	{192, 168, 1, 130}
-#define NET_MASK				{255, 255, 255, 0}
-#define GW_ADDRESS				{192, 168, 1, 1}
-#define DEFAULT_PORT			5001
-#define LEDS_ADDR XPAR_GPIO_1_BASEADDR
-/* this number is not magic, reading the datasheet: PHYAD are 5 bits set on PCB to be 0b11111 = 0x1F  */
-	#define PHY_ADDRESS 0x1F
-#define LEDS_REGISTER 0x18
-#define BMCR_REGISTER 0x00
-#define MAC_ADDRESS_LENGTH 6
-#define IP_ADDRESS_LENGTH 4
-#define ETHERTYPE_LENGTH 2
-#define ETHERNET_FCS_LENGTH 4
-
-/* host to network byte (big-endian) */
-#define PP_HTONS(x) ((((x) & 0xff) << 8) | (((x) & 0xff00) >> 8))
-
-typedef enum
-{
-	IPv4 = 0x0800,
-	IPv4_big_endian = 0x0008, /* really it is 0x0800, but for speed going to compare directly with 0x0008 because this processor is little endian */
-	ARP = 0x0806,
-	ARP_big_endian = 0x0608, /* really it is 0x0806, but for speed going to compare directly with 0x0608 because this processor is little endian */
-	WOL = 0x0842
-} ethertype_t;
-
-typedef enum
-{
-	RESERVED = 0b100,
-	DONT_FRAGMENT = 0b010,
-	MORE_FRAGMENTS = 0b001
-} flags_t;
-
-typedef enum
-{
-	BROADCAST = 0xFF,
-	MINE = 0x01,
-	UNKNOWN = 0x00
-} eth_frame_mac_t;
-
-typedef enum
-{
-	ICMP = 0x01,
-	UDP = 0x11
-} ipv4_protocol_t;
-
-typedef enum
-{
-	ECHO_REPLY = 0x00, /* type field is enumerated here, code field is required 0 for both */
-	ECHO_REQUEST = 0x08
-} icmp_type_t;
-
-typedef enum
-{
-	ARP_REQUEST_WINDOWS = 0x0001,
-	ARP_REPLY_WINDOWS = 0x0002,
-	ARP_REQUEST_LINUX = 0x0100,
-	ARP_REPLY_LINUX = 0x0200
-} arp_opcodes_t;
-
-/* the mac address of the board. this should be unique per board */
-u8 my_mac_address[MAC_ADDRESS_LENGTH] = MY_MAC_ADDRESS;
-u8 destination_mac_address[MAC_ADDRESS_LENGTH] = DESTINATION_MAC_ADDRESS;
-u8 broadcast_mac_address[MAC_ADDRESS_LENGTH] = BROADCAST_MAC_ADDRESS;
-u8 my_ip_address[IP_ADDRESS_LENGTH] = MY_IP_ADDRESS;
-u8 my_ip_address_inv[IP_ADDRESS_LENGTH] = MY_IP_ADDRESS_INV;
-u8 destination_ip_address[IP_ADDRESS_LENGTH] = DESTINATION_IP_ADDRESS;
-u8 * board_leds = (u8*) LEDS_ADDR;
-XEmacLite emaclite_inst;
-XIntc intc_inst;
-XIntc_Config * config_intc;
-u8 buffer[2048] = {'\0'};
-u16 packetlen = 0;
-u16 data = 0;
-int response = XST_SUCCESS;
+#define LLARGARIA_MAC 6
+#define LLARGARIA_FCS 4
+#define IPv4 0x0800
+#define ARP 0x0806
+#define ICMP 0x01
+#define ECHO_REPLY 0x00
+#define ECHO_REQUEST 0x08
+#define ARP_REQUEST_WINDOWS 0x0001
+#define ARP_REPLY_WINDOWS 0x0002
+#define ARP_REQUEST_LINUX 0x0100
+#define ARP_REPLY_LINUX 0x0200
+#define INVERTEIX_BYTES_16(x) ((((x) & 0x00ff) << 8) | (((x) & 0xff00) >> 8))
 
 typedef struct __attribute__((__packed__))
 {
-	u8 destination_mac[MAC_ADDRESS_LENGTH];
-	u8 source_mac[MAC_ADDRESS_LENGTH];
+	u8 mac_desti[LLARGARIA_MAC];
+	u8 mac_origen[LLARGARIA_MAC];
 	u16 ethertype;
-	u8 * payload;
-} ethernet_frame_t;
+	u8 * dades;
+} trama_ethernet_t;
 
 typedef struct __attribute__((__packed__))
 {
-	u8 version_header_length;
-	u8 type_of_service;
-	u16 total_length;
-	u16 identification;
-	u16 flags_offset;
-	u8 ttl;
+	u8 versio_llargaria_header;
+	u8 tipus_de_servei;
+	u16 llargaria_total;
+	u16 identificacio;
+	u16 flags_fragments;
+	u8 temps_de_vida;
 	u8 protocol;
-	u16 header_checksum;
-	u32 source_ip;
-	u32 destination_ip;
-	u8 * payload_data;
-} ip_frame_t;
+	u16 suma_verificacio;
+	u32 ip_origen;
+	u32 ip_desti;
+	u8 * dades;
+} paquet_ip_t;
 
 typedef struct __attribute__((__packed__))
 {
-	u8 type_of_message;
-	u8 code;
-	u16 header_checksum;
-	u32 header_data;
-	u8 * payload_data;
-} icmp_frame_t;
+	u16 tipus_de_medi;
+	u16 identificacio;
+	u8 llargaria_direccio_fisica;
+	u8 llargaria_direccio_logica;
+	u16 operacio;
+	u8 mac_origen[LLARGARIA_MAC];
+	u32 ip_origen;
+	u8 mac_desti[LLARGARIA_MAC];
+	u32 ip_desti;
+} paquet_arp_t;
 
 typedef struct __attribute__((__packed__))
 {
-	u16 hardware_type;
-	u16 protocol_type;
-	u8 hardware_size;
-	u8 protocol_size;
-	u16 operation_code;
-	u8 sender_mac[MAC_ADDRESS_LENGTH];
-	u32 sender_ip;
-	u8 target_mac[MAC_ADDRESS_LENGTH];
-	u32 target_ip;
-} arp_frame_t;
+	u8 tipus_de_missatge;
+	u8 codi;
+	u16 suma_verificacio;
+	u32 dades_header;
+	u8 * dades;
+} paquet_icmp_t;
 
 typedef struct
 {
-	volatile Xboolean packet_received;
-	u16 packet_received_length;
-	volatile Xboolean packet_sent;
-} system_t;
+	volatile Xboolean paquet_rebut;
+	volatile Xboolean paquet_enviat;
+	volatile u16 llargaria_paquet_rebut;
+} variables_sistema;
 
-system_t sys;
-ethernet_frame_t * eth_frame_p;
-void print_mac_address(u8 * addr);
-void print_ip_address(u8 * addr);
-void recv_callback(XEmacLite * callbackReference);
-void sent_callback(XEmacLite * callbackReference);
-u16 calculate_header_checksum_ip(ip_frame_t * packet);
-u32 convert_ip_address(u8 * ip_array);
-u16 calculate_header_checksum_icmp(icmp_frame_t * packet, u32 data_length);
-eth_frame_mac_t check_eth_frame_destination_mac(ethernet_frame_t * frame_p);
-ethertype_t check_eth_frame_ethertype(ethernet_frame_t * frame_p);
-void calculate_checksum_from_to(icmp_frame_t * frame, u8 * address_from, u8 * address_to);
+void imprimeix_direccio_mac(u8 * addr);
+void callback_rebut(XEmacLite * callbackReference);
+void callback_enviat(XEmacLite * callbackReference);
+void inicialitza_interrupcions(void);
+void inicialitza_emaclite(void);
+
+/* the mac address of the board. this should be unique per board */
+u8 direccio_mac[LLARGARIA_MAC] = {0x00, 0x0a, 0x35, 0x00, 0x01, 0x02};
+u32 direccio_ip = (192)|(168<<8)|(1<<16)|(200<<24);
+XEmacLite emaclite;
+XIntc intc;
+static u8 buffer[2048] = {'\0'};
+static volatile variables_sistema sys;
+static trama_ethernet_t * trama_ethernet = (trama_ethernet_t *) &buffer[0];
 
 int main(void)
 {
-	u8 i = 0;
-	u32 my_ip_address_32 = (my_ip_address[3]<<24)|(my_ip_address[2]<<16)|(my_ip_address[1]<<8)|(my_ip_address[0]);
-
-	/* turn off board leds */
-	*board_leds = 0b0000;
-
-	/* clears output */
+	/* neteja la consola UART i imprimeix missatge */
 	xil_printf("%c[2J",27);
-	xil_printf("----- TFM - Marko Peshevski -----\r\n");
+	xil_printf("----- TFM - Marko Peshevski - versio NO-LwIP -----\r\n");
 
-	/* initialize and start system interrupts */
-	xil_printf("Initializing Intc hardware peripheral... ");
-	if (XIntc_Initialize(&intc_inst, XPAR_INTC_0_DEVICE_ID) != XST_SUCCESS)
-	{
-		xil_printf("Error initializing Intc hardware peripheral, returning!\r\n");
-	}
-	xil_printf("OK!\r\n");
+	inicialitza_interrupcions();
+	inicialitza_emaclite();
 
-	xil_printf("Starting Intc hardware peripheral... ");
-	if (XIntc_Start(&intc_inst, XIN_REAL_MODE) != XST_SUCCESS)
-	{
-		xil_printf("Could not start Intc hardware peripheral, returning!\r\n");
-		return 0;
-	}
-	xil_printf("OK!\r\n");
-
-	/* register interrupt handler in MB_InterruptVectorTable */
-	Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler) XIntc_InterruptHandler, &intc_inst);
-
-	/* enable specific interrupt in interrupt controller */
-	XIntc_EnableIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_ETHERNET_MAC_IP2INTC_IRPT_MASK);
-
-	/* enable interrupt source in system hardware */
-	XIntc_Enable(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID);
-
-	/* connecting interrupt source to ethernet MAC */
-	xil_printf("Connecting interrupt source for Emaclite... ");
-	if (XIntc_Connect(&intc_inst, XPAR_INTC_0_EMACLITE_0_VEC_ID, (XInterruptHandler) XEmacLite_InterruptHandler, (void *) &intc_inst) != XST_SUCCESS)
-	{
-		xil_printf("Something failed!\r\n");
-	}
-	xil_printf("OK!\r\n");
-
-	/* initialize emaclite driver and PHY */
-	xil_printf("Initializing Emaclite... ");
-	if (XEmacLite_Initialize(&emaclite_inst, XPAR_ETHERNET_MAC_DEVICE_ID) != XST_SUCCESS)
-	{
-		xil_printf("Could not initialize Emaclite, returning!\r\n");
-		return 0;
-	}
-	xil_printf("OK!\r\n");
-
-	XIntc_RegisterHandler(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_INTC_0_EMACLITE_0_VEC_ID, (XInterruptHandler)XEmacLite_InterruptHandler, &emaclite_inst);
-
-	/* set MAC address */
-	xil_printf("Setting MAC address to: '");
-	print_mac_address(my_mac_address);
-	xil_printf("'... ");
-	XEmacLite_SetMacAddress(&emaclite_inst, (u8 *) my_mac_address);
-	xil_printf("OK!\r\n");
-
-	/* flush any frames already received */
-	XEmacLite_FlushReceive(&emaclite_inst);
-
-	/* enable interrupts */
-	xil_printf("Assigning callback functions... ");
-	XEmacLite_SetRecvHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) recv_callback);
-	XEmacLite_SetSendHandler(&emaclite_inst, &emaclite_inst, (XEmacLite_Handler) sent_callback);
-	xil_printf("Enabling Emaclite interrupts... ");
-	if (XEmacLite_EnableInterrupts(&emaclite_inst) != XST_SUCCESS)
-	{
-		xil_printf("Error enabling interrupts, returning!\r\n");
-		return 0;
-	}
-	xil_printf("OK!\r\n");
-
-	/* finally enable exceptions on core level */
+	/* activa les interrupcions a nivell de processador */
 	Xil_ExceptionEnable();
 
-	eth_frame_p = (ethernet_frame_t *) &buffer[0];
 	while (1)
 	{
-		/* if any data to process */
-		if (sys.packet_received)
+		if (sys.paquet_rebut)
 		{
-			/* clears flag */
-			sys.packet_received = FALSE;
+			/* neteja el flag */
+			sys.paquet_rebut = FALSE;
 
-			memcpy(eth_frame_p->destination_mac, eth_frame_p->source_mac, MAC_ADDRESS_LENGTH);
-			memcpy(eth_frame_p->source_mac, my_mac_address, MAC_ADDRESS_LENGTH);
+			/* inverteix les direccions MAC, respon d'on ha vingut el paquet */
+			memcpy(trama_ethernet->mac_desti, trama_ethernet->mac_origen, LLARGARIA_MAC);
+			memcpy(trama_ethernet->mac_origen, direccio_mac, LLARGARIA_MAC);
 
-			/* checks if packet is ARP */
-			if(eth_frame_p->ethertype == ARP_big_endian)
+			/* mira si el paquet es ARP. necessita girar els bytes */
+			if(INVERTEIX_BYTES_16(trama_ethernet->ethertype) == ARP)
 			{
-				arp_frame_t * arp_frame_p = (arp_frame_t *) &eth_frame_p->payload;
-				if(arp_frame_p->target_ip == my_ip_address_32)
+				/* simplement es un cast que interpreta les dades de memoria per facilitar */
+				paquet_arp_t * paquet_arp = (paquet_arp_t *) &trama_ethernet->dades;
+
+				/* mira si el paquet anava dirigit per la nostra IP */
+				if(paquet_arp->ip_desti == direccio_ip)
 				{
-					if(arp_frame_p->operation_code == ARP_REQUEST_LINUX) /* ARP request, it is a 1 in the high byte */
+					if(paquet_arp->operacio == ARP_REQUEST_LINUX) /* ARP request, it is a 1 in the high byte */
 					{
-						arp_frame_p->operation_code = ARP_REPLY_LINUX; /* ARP reply, it is a 2 in the high byte */
+						paquet_arp->operacio = ARP_REPLY_LINUX; /* ARP reply, it is a 2 in the high byte */
 					}
-					else if(arp_frame_p->operation_code == ARP_REQUEST_WINDOWS) /* ARP request, it is a 1 in the low byte */
+					else if(paquet_arp->operacio == ARP_REQUEST_WINDOWS) /* ARP request, it is a 1 in the low byte */
 					{
-						arp_frame_p->operation_code = ARP_REPLY_WINDOWS; /* ARP request, it is a 2 in the low byte */
+						paquet_arp->operacio = ARP_REPLY_WINDOWS; /* ARP request, it is a 2 in the low byte */
 					}
 
-					arp_frame_p->target_ip = arp_frame_p->sender_ip;
-					arp_frame_p->sender_ip = my_ip_address_32;
-					memcpy(arp_frame_p->target_mac, arp_frame_p->sender_mac, MAC_ADDRESS_LENGTH);
-					memcpy(arp_frame_p->sender_mac, my_mac_address, MAC_ADDRESS_LENGTH);
+					/* inverteix adreces IP i MAC del paquet */
+					paquet_arp->ip_desti = paquet_arp->ip_origen;
+					paquet_arp->ip_origen = direccio_ip;
+					memcpy(paquet_arp->mac_desti, paquet_arp->mac_origen, LLARGARIA_MAC);
+					memcpy(paquet_arp->mac_origen, direccio_mac, LLARGARIA_MAC);
 
-					XEmacLite_Send(&emaclite_inst, buffer, sizeof(arp_frame_t) + sizeof(ethernet_frame_t));
+					/* envia la resposta */
+					XEmacLite_Send(&emaclite, buffer, sys.llargaria_paquet_rebut - LLARGARIA_FCS);
 				}
 			}
-			else if(eth_frame_p->ethertype == IPv4_big_endian)
+			/* mira si es un paquet IPv4. necessita girar els bytes */
+			else if(INVERTEIX_BYTES_16(trama_ethernet->ethertype) == IPv4)
 			{
-				ip_frame_t * ip_frame_p = (ip_frame_t *) &eth_frame_p->payload;
-				if(ip_frame_p->protocol == ICMP)
-				{
-					icmp_frame_t * icmp_frame_p = (icmp_frame_t *) &ip_frame_p->payload_data;
-					if(icmp_frame_p->type_of_message == ECHO_REQUEST)
-					{
-						if (icmp_frame_p->header_checksum >= PP_HTONS(0xffffU - (ECHO_REQUEST << 8)))
-						{
-							icmp_frame_p->header_checksum += PP_HTONS(ECHO_REQUEST << 8) + 1;
-						}
-						else
-						{
-							icmp_frame_p->header_checksum += PP_HTONS(ECHO_REQUEST << 8);
-						}
+				/* simplement es un cast que interpreta les dades de memoria per facilitar */
+				paquet_ip_t * paquet_ip = (paquet_ip_t *) &trama_ethernet->dades;
 
-						icmp_frame_p->type_of_message = ECHO_REPLY;
-						memcpy(&ip_frame_p->destination_ip, &ip_frame_p->source_ip, IP_ADDRESS_LENGTH);
-						memcpy(&ip_frame_p->source_ip, &my_ip_address, IP_ADDRESS_LENGTH);
-						XEmacLite_Send(&emaclite_inst, buffer, sys.packet_received_length - ETHERNET_FCS_LENGTH);
+				/* mira si es un paquet de tipus ICMP */
+				if(paquet_ip->protocol == ICMP)
+				{
+					/* simplement es un cast que interpreta les dades de memoria per facilitar */
+					paquet_icmp_t * paquet_icmp = (paquet_icmp_t *) &paquet_ip->dades;
+
+					/* mira si es una peticio d'eco */
+					if(paquet_icmp->tipus_de_missatge == ECHO_REQUEST)
+					{
+						/* canvia la suma de verificacio */
+						paquet_icmp->suma_verificacio += ECHO_REQUEST; /* -ECHO_REPLY, pero no cal perque es 0 */
+
+						/* modifica el tipus de missatge */
+						paquet_icmp->tipus_de_missatge = ECHO_REPLY;
+
+						/* inverteix les adreces del paquet IPv4 */
+						paquet_ip->ip_desti = paquet_ip->ip_origen;
+						paquet_ip->ip_origen = direccio_ip;
+
+						/* envia la resposta */
+						XEmacLite_Send(&emaclite, buffer, sys.llargaria_paquet_rebut - LLARGARIA_FCS);
 					}
 				}
 			}
 		}
-		if(sys.packet_sent)
+		if(sys.paquet_enviat)
 		{
-			/* clears flag */
-			sys.packet_sent = FALSE;
+			/* neteja el flag */
+			sys.paquet_enviat = FALSE;
 		}
 	}
-
-	/* deinitialize driver and PHY */
-	/* never reached */
 	return 0;
 }
 
 
-void print_mac_address(u8 * addr)
+void imprimeix_direccio_mac(u8 * addr)
 {
 	xil_printf("%02x:%02x:%02x:%02x:%02x:%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
 }
 
-void print_ip_address(u8 * addr)
+void callback_rebut(XEmacLite * callbackReference)
 {
-	xil_printf("%03d.%03d.%03d.%03d", addr[0], addr[1], addr[2], addr[3]);
+	/* neteja la interrupcio del sistema */
+	XIntc_AckIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_ETHERNET_MAC_IP2INTC_IRPT_MASK);
+
+	/* llegeix la llargaria de les dades rebudes */
+	sys.llargaria_paquet_rebut = XEmacLite_Recv(&emaclite, &buffer[0]);
+
+	/* posa un flag per notificar al bucle principal */
+	sys.paquet_rebut = TRUE;
 }
 
-void recv_callback(XEmacLite * callbackReference)
+void callback_enviat(XEmacLite * callbackReference)
 {
-	//if (callbackReference->EmacLiteConfig.BaseAddress == XPAR_EMACLITE_0_BASEADDR)
-	//{
-		XIntc_AckIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_ETHERNET_MAC_IP2INTC_IRPT_MASK);
-		sys.packet_received_length = XEmacLite_Recv(&emaclite_inst, &buffer[0]);
-		sys.packet_received = TRUE;
-	//}
+	/* neteja la interrupcio del sistema */
+	XIntc_AckIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_ETHERNET_MAC_IP2INTC_IRPT_MASK);
+
+	/* posa un flag per notificar al bucle principal */
+	sys.paquet_enviat = TRUE;
 }
 
-void sent_callback(XEmacLite * callbackReference)
+void inicialitza_interrupcions(void)
 {
-	//if (callbackReference->EmacLiteConfig.BaseAddress == XPAR_EMACLITE_0_BASEADDR)
-	//{
-		XIntc_AckIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_ETHERNET_MAC_IP2INTC_IRPT_MASK);
-		sys.packet_sent = TRUE;
-	//}
+	/* inicialitza el periferic Intc de MicroBlaze */
+	xil_printf("Inicialitzant periferic Intc... ");
+	if (XIntc_Initialize(&intc, XPAR_INTC_0_DEVICE_ID) != XST_SUCCESS)
+	{
+		xil_printf("No s'ha pogut completar!\r\n");
+		return;
+	}
+	xil_printf("OK!\r\n");
+
+	/* arrenca el periferic en mode real (no simulacio) */
+	xil_printf("Arrencant periferic Intc... ");
+	if (XIntc_Start(&intc, XIN_REAL_MODE) != XST_SUCCESS)
+	{
+		xil_printf("No s'ha pogut completar!\r\n");
+		return;
+	}
+	xil_printf("OK!\r\n");
+
+	/* especifica la funcio que gestiona les interrupcions del Emaclite */
+	Xil_ExceptionRegisterHandler(XIL_EXCEPTION_ID_INT, (Xil_ExceptionHandler) XIntc_InterruptHandler, &intc);
+
+	/* habilita les interrupcions del Emaclite */
+	XIntc_EnableIntr(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_ETHERNET_MAC_IP2INTC_IRPT_MASK);
+
+	/* activa les interrupcions del Emaclite */
+	XIntc_Enable(&intc, XPAR_INTC_0_EMACLITE_0_VEC_ID);
+
+	/* connecta el senyal d'interrupcio del Emaclite amb el periferic Intc */
+	xil_printf("Connectant senyal d'interrupcio del Emaclite... ");
+	if (XIntc_Connect(&intc, XPAR_INTC_0_EMACLITE_0_VEC_ID, (XInterruptHandler) XEmacLite_InterruptHandler, (void *) &intc) != XST_SUCCESS)
+	{
+		xil_printf("No s'ha pogut completar!\r\n");
+	}
+	xil_printf("OK!\r\n");
+}
+
+void inicialitza_emaclite(void)
+{
+	/* inicialitza el Emaclite i el xip PHY de la placa */
+	xil_printf("Inicialitzant Emaclite i PHY... ");
+	if (XEmacLite_Initialize(&emaclite, XPAR_ETHERNET_MAC_DEVICE_ID) != XST_SUCCESS)
+	{
+		xil_printf("No s'ha pogut completar!\r\n");
+		return;
+	}
+	xil_printf("OK!\r\n");
+
+	XIntc_RegisterHandler(XPAR_MICROBLAZE_0_INTC_BASEADDR, XPAR_INTC_0_EMACLITE_0_VEC_ID, (XInterruptHandler)XEmacLite_InterruptHandler, &emaclite);
+
+	/* configura la direccio MAC */
+	xil_printf("Configurant la següent direccio MAC: '");
+	imprimeix_direccio_mac(direccio_mac);
+	xil_printf("'... ");
+	XEmacLite_SetMacAddress(&emaclite, (u8 *) direccio_mac);
+	xil_printf("OK!\r\n");
+
+	/* neteja els buffers de recepcio */
+	XEmacLite_FlushReceive(&emaclite);
+
+	/* assigna funcions callback i habilita interrupcions */
+	xil_printf("Assignant funcions de callback per les interrupcions... ");
+	XEmacLite_SetRecvHandler(&emaclite, &emaclite, (XEmacLite_Handler) callback_rebut);
+	XEmacLite_SetSendHandler(&emaclite, &emaclite, (XEmacLite_Handler) callback_enviat);
+	xil_printf("Habilitant interrupcions d'Emaclite... ");
+	if (XEmacLite_EnableInterrupts(&emaclite) != XST_SUCCESS)
+	{
+		xil_printf("No s'ha pogut completar!\r\n");
+		return;
+	}
+	xil_printf("OK!\r\n");
 }
