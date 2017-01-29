@@ -1,0 +1,495 @@
+PING 192.168.1.200 (192.168.1.200) 20(48) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 1186ms
+rtt min/avg/max/mdev = 0.866/0.892/0.909/0.033 ms
+PING 192.168.1.200 (192.168.1.200) 30(58) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 1185ms
+rtt min/avg/max/mdev = 0.863/0.901/0.920/0.030 ms
+PING 192.168.1.200 (192.168.1.200) 40(68) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 1188ms
+rtt min/avg/max/mdev = 0.888/0.924/0.945/0.021 ms
+PING 192.168.1.200 (192.168.1.200) 50(78) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 1188ms
+rtt min/avg/max/mdev = 0.895/0.935/0.954/0.023 ms
+PING 192.168.1.200 (192.168.1.200) 60(88) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 1149ms
+rtt min/avg/max/mdev = 0.920/0.957/0.981/0.044 ms
+PING 192.168.1.200 (192.168.1.200) 70(98) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 1061ms
+rtt min/avg/max/mdev = 0.937/0.968/0.987/0.013 ms
+PING 192.168.1.200 (192.168.1.200) 80(108) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 1014ms
+rtt min/avg/max/mdev = 0.954/0.987/1.012/0.045 ms
+PING 192.168.1.200 (192.168.1.200) 90(118) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 1006ms
+rtt min/avg/max/mdev = 0.961/0.992/1.031/0.023 ms
+PING 192.168.1.200 (192.168.1.200) 100(128) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 0.988/1.015/1.051/0.025 ms
+PING 192.168.1.200 (192.168.1.200) 110(138) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 0.995/1.021/1.051/0.044 ms
+PING 192.168.1.200 (192.168.1.200) 120(148) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.027/1.048/1.096/0.032 ms
+PING 192.168.1.200 (192.168.1.200) 130(158) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.032/1.055/1.089/0.034 ms
+PING 192.168.1.200 (192.168.1.200) 140(168) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.059/1.087/1.118/0.042 ms
+PING 192.168.1.200 (192.168.1.200) 150(178) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.068/1.089/1.109/0.038 ms
+PING 192.168.1.200 (192.168.1.200) 160(188) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.098/1.125/1.156/0.032 ms
+PING 192.168.1.200 (192.168.1.200) 170(198) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.087/1.133/1.162/0.036 ms
+PING 192.168.1.200 (192.168.1.200) 180(208) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.138/1.157/1.182/0.048 ms
+PING 192.168.1.200 (192.168.1.200) 190(218) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.148/1.171/1.194/0.019 ms
+PING 192.168.1.200 (192.168.1.200) 200(228) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.136/1.190/1.218/0.035 ms
+PING 192.168.1.200 (192.168.1.200) 210(238) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.177/1.200/1.232/0.047 ms
+PING 192.168.1.200 (192.168.1.200) 220(248) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.206/1.231/1.256/0.027 ms
+PING 192.168.1.200 (192.168.1.200) 230(258) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.206/1.237/1.264/0.040 ms
+PING 192.168.1.200 (192.168.1.200) 240(268) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.245/1.274/1.299/0.021 ms
+PING 192.168.1.200 (192.168.1.200) 250(278) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.250/1.271/1.306/0.038 ms
+PING 192.168.1.200 (192.168.1.200) 260(288) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.280/1.304/1.337/0.051 ms
+PING 192.168.1.200 (192.168.1.200) 270(298) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.297/1.315/1.339/0.039 ms
+PING 192.168.1.200 (192.168.1.200) 280(308) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.317/1.339/1.368/0.028 ms
+PING 192.168.1.200 (192.168.1.200) 290(318) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.323/1.346/1.376/0.050 ms
+PING 192.168.1.200 (192.168.1.200) 300(328) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.349/1.372/1.397/0.033 ms
+PING 192.168.1.200 (192.168.1.200) 310(338) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.290/1.381/1.416/0.051 ms
+PING 192.168.1.200 (192.168.1.200) 320(348) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.389/1.414/1.439/0.022 ms
+PING 192.168.1.200 (192.168.1.200) 330(358) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.394/1.417/1.455/0.043 ms
+PING 192.168.1.200 (192.168.1.200) 340(368) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.428/1.450/1.479/0.011 ms
+PING 192.168.1.200 (192.168.1.200) 350(378) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.278/1.459/1.488/0.053 ms
+PING 192.168.1.200 (192.168.1.200) 360(388) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.457/1.483/1.528/0.042 ms
+PING 192.168.1.200 (192.168.1.200) 370(398) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.461/1.492/1.525/0.042 ms
+PING 192.168.1.200 (192.168.1.200) 380(408) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.496/1.517/1.567/0.049 ms
+PING 192.168.1.200 (192.168.1.200) 390(418) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.501/1.530/1.555/0.052 ms
+PING 192.168.1.200 (192.168.1.200) 400(428) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.534/1.559/1.585/0.033 ms
+PING 192.168.1.200 (192.168.1.200) 410(438) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.539/1.563/1.595/0.038 ms
+PING 192.168.1.200 (192.168.1.200) 420(448) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.571/1.594/1.615/0.021 ms
+PING 192.168.1.200 (192.168.1.200) 430(458) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.579/1.606/1.631/0.050 ms
+PING 192.168.1.200 (192.168.1.200) 440(468) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.610/1.631/1.655/0.029 ms
+PING 192.168.1.200 (192.168.1.200) 450(478) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.612/1.636/1.670/0.057 ms
+PING 192.168.1.200 (192.168.1.200) 460(488) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.533/1.664/1.693/0.054 ms
+PING 192.168.1.200 (192.168.1.200) 470(498) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.625/1.670/1.697/0.039 ms
+PING 192.168.1.200 (192.168.1.200) 480(508) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.676/1.706/1.737/0.050 ms
+PING 192.168.1.200 (192.168.1.200) 490(518) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.686/1.706/1.742/0.035 ms
+PING 192.168.1.200 (192.168.1.200) 500(528) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.718/1.742/1.770/0.045 ms
+PING 192.168.1.200 (192.168.1.200) 510(538) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.723/1.752/1.777/0.041 ms
+PING 192.168.1.200 (192.168.1.200) 520(548) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.749/1.776/1.806/0.033 ms
+PING 192.168.1.200 (192.168.1.200) 530(558) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.758/1.785/1.817/0.044 ms
+PING 192.168.1.200 (192.168.1.200) 540(568) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.791/1.815/1.855/0.058 ms
+PING 192.168.1.200 (192.168.1.200) 550(578) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.802/1.823/1.848/0.045 ms
+PING 192.168.1.200 (192.168.1.200) 560(588) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.825/1.853/1.919/0.056 ms
+PING 192.168.1.200 (192.168.1.200) 570(598) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.839/1.860/1.891/0.055 ms
+PING 192.168.1.200 (192.168.1.200) 580(608) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.872/1.889/1.924/0.050 ms
+PING 192.168.1.200 (192.168.1.200) 590(618) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.882/1.906/1.936/0.059 ms
+PING 192.168.1.200 (192.168.1.200) 600(628) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.912/1.929/2.005/0.055 ms
+PING 192.168.1.200 (192.168.1.200) 610(638) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.923/1.935/1.988/0.062 ms
+PING 192.168.1.200 (192.168.1.200) 620(648) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.938/1.965/1.990/0.040 ms
+PING 192.168.1.200 (192.168.1.200) 630(658) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.944/1.978/2.006/0.057 ms
+PING 192.168.1.200 (192.168.1.200) 640(668) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.982/2.005/2.032/0.051 ms
+PING 192.168.1.200 (192.168.1.200) 650(678) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 1.982/2.014/2.052/0.051 ms
+PING 192.168.1.200 (192.168.1.200) 660(688) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.019/2.047/2.071/0.025 ms
+PING 192.168.1.200 (192.168.1.200) 670(698) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.023/2.053/2.083/0.058 ms
+PING 192.168.1.200 (192.168.1.200) 680(708) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.047/2.076/2.107/0.045 ms
+PING 192.168.1.200 (192.168.1.200) 690(718) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.063/2.085/2.109/0.063 ms
+PING 192.168.1.200 (192.168.1.200) 700(728) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.094/2.117/2.143/0.023 ms
+PING 192.168.1.200 (192.168.1.200) 710(738) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.033/2.123/2.160/0.046 ms
+PING 192.168.1.200 (192.168.1.200) 720(748) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.129/2.160/2.184/0.052 ms
+PING 192.168.1.200 (192.168.1.200) 730(758) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.140/2.164/2.204/0.041 ms
+PING 192.168.1.200 (192.168.1.200) 740(768) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.169/2.193/2.220/0.057 ms
+PING 192.168.1.200 (192.168.1.200) 750(778) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.179/2.206/2.233/0.059 ms
+PING 192.168.1.200 (192.168.1.200) 760(788) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.215/2.235/2.265/0.021 ms
+PING 192.168.1.200 (192.168.1.200) 770(798) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.230/2.248/2.268/0.032 ms
+PING 192.168.1.200 (192.168.1.200) 780(808) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.242/2.272/2.300/0.040 ms
+PING 192.168.1.200 (192.168.1.200) 790(818) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.250/2.281/2.310/0.046 ms
+PING 192.168.1.200 (192.168.1.200) 800(828) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.285/2.315/2.355/0.053 ms
+PING 192.168.1.200 (192.168.1.200) 810(838) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.287/2.316/2.342/0.047 ms
+PING 192.168.1.200 (192.168.1.200) 820(848) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.317/2.346/2.376/0.056 ms
+PING 192.168.1.200 (192.168.1.200) 830(858) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.323/2.356/2.380/0.047 ms
+PING 192.168.1.200 (192.168.1.200) 840(868) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.355/2.388/2.412/0.043 ms
+PING 192.168.1.200 (192.168.1.200) 850(878) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.368/2.395/2.420/0.041 ms
+PING 192.168.1.200 (192.168.1.200) 860(888) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.390/2.419/2.442/0.042 ms
+PING 192.168.1.200 (192.168.1.200) 870(898) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.393/2.429/2.455/0.011 ms
+PING 192.168.1.200 (192.168.1.200) 880(908) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.425/2.466/2.494/0.057 ms
+PING 192.168.1.200 (192.168.1.200) 890(918) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 990ms
+rtt min/avg/max/mdev = 2.440/2.466/2.509/0.056 ms
+PING 192.168.1.200 (192.168.1.200) 900(928) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.470/2.497/2.534/0.049 ms
+PING 192.168.1.200 (192.168.1.200) 910(938) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.482/2.506/2.547/0.028 ms
+PING 192.168.1.200 (192.168.1.200) 920(948) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.506/2.532/2.574/0.068 ms
+PING 192.168.1.200 (192.168.1.200) 930(958) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.514/2.544/2.574/0.065 ms
+PING 192.168.1.200 (192.168.1.200) 940(968) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.547/2.571/2.599/0.058 ms
+PING 192.168.1.200 (192.168.1.200) 950(978) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.556/2.583/2.611/0.036 ms
+PING 192.168.1.200 (192.168.1.200) 960(988) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.587/2.610/2.637/0.054 ms
+PING 192.168.1.200 (192.168.1.200) 970(998) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.588/2.616/2.640/0.039 ms
+PING 192.168.1.200 (192.168.1.200) 980(1008) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.630/2.649/2.685/0.038 ms
+PING 192.168.1.200 (192.168.1.200) 990(1018) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.634/2.658/2.717/0.043 ms
+PING 192.168.1.200 (192.168.1.200) 1000(1028) bytes of data.
+
+--- 192.168.1.200 ping statistics ---
+100 packets transmitted, 100 received, 0% packet loss, time 989ms
+rtt min/avg/max/mdev = 2.660/2.686/2.718/0.044 ms
