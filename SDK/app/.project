@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
 	<name>app</name>
-	<comment>standalone_bsp_0 - microblaze_0</comment>
+	<comment></comment>
 	<projects>
 		<project>standalone_bsp_0</project>
+		<project>standalone_bsp_1</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
