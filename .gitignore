@@ -12,3 +12,6 @@
 *log
 Avt**
 *~*
+presentacio/*.*
+!presentacio/*.tex
+!presentacio/*.pdf
