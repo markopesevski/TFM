@@ -1,5 +1,10 @@
 \documentclass[compress]{beamer}
 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[catalan]{babel}
+\usepackage{lmodern}
+
 \mode<presentation>
 {
 	\usetheme{Singapore}
@@ -11,8 +16,7 @@
 
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{media9}
-% \usepackage{animate}
+
 \usepackage[amssymb]{SIunits}
 \usepackage{listings}
 \lstloadlanguages{VHDL}
@@ -68,7 +72,49 @@
 	}
 
 % TEST AREA
-
+%Definició de la ela geminada per tal que accepti el punt volat del teclat
+\def·#1{%
+  \ifmmode
+    \cdot #1
+    %\csname normal@char\string"\endcsname l%
+  \else%
+    \def\argument{#1}%
+    \if\argument l%
+      \leftllkern=0pt\rightllkern=0pt\raiselldim=0pt%
+      \setbox0\hbox{l}\setbox1\hbox{l\/}\setbox2\hbox{.}%
+      \advance\raiselldim by \the\fontdimen5\the\font
+      \advance\raiselldim by -\ht2%
+      \leftllkern=-.25\wd0%
+      \advance\leftllkern by \wd1%
+      \advance\leftllkern by -\wd0%
+      \rightllkern=-.25\wd0%
+      \advance\rightllkern by -\wd1%
+      \advance\rightllkern by \wd0%
+      \allowhyphens\discretionary{-}{l}%
+      {\hbox{}\kern\leftllkern\raise\raiselldim\hbox{.}%
+        \kern\rightllkern\hbox{l}}\allowhyphens%
+    \else
+      \if\argument L%
+        \leftllkern=0pt\rightllkern=0pt\raiselldim=0pt%
+        \setbox0\hbox{L}\setbox1\hbox{L\/}\setbox2\hbox{.}%
+        \advance\raiselldim by .5\ht0%
+        \advance\raiselldim by -.5\ht2%
+        \leftllkern=-.125\wd0%
+        \advance\leftllkern by \wd1%
+        \advance\leftllkern by -\wd0%
+        \rightllkern=-\wd0%
+        \divide\rightllkern by 6%
+        \advance\rightllkern by -\wd1%
+        \advance\rightllkern by \wd0%
+        \allowhyphens\discretionary{-}{L}%
+        {\hbox{}\kern\leftllkern\raise\raiselldim\hbox{.}%
+           \kern\rightllkern\hbox{L}}\allowhyphens%
+      \else
+        #1
+      \fi
+    \fi
+  \fi
+  }
 % TEST AREA
 
 % TITLE PAGE
@@ -93,152 +139,178 @@
 \section{Introducci\'o}
 	\subsection{Objectius}
 		\begin{frame}
-			\frametitle{El problema. Objetivo}
+			\frametitle{Objectius}
+				\begin{itemize}
+					\item{Con\`eixer Ethernet en profunditat}
+					\item{Con\`eixer en profunditat alguns protocols de xarxes}
+					\item{Desenvolupar un sistema incrustat amb Ethernet sobre una FPGA}
+					\item{Intentar desenvolupar una pila de protocol b\`asica}
+				\end{itemize}
+		\end{frame}
+
+\section{FPGA}
+	\subsection{Estructura}
+		\begin{frame}
+			\frametitle{Estructura}
+			\framesubtitle{}
+				\begin{itemize}
+					\item{Matriu de blocs l\`ogics, interconnectats}
+					\item{Blocs d'entrada/sortida}
+					\item{Recursos d'interconnexi\'o}
+				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figuras/introduccion.png}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
 				\end{figure}
 		\end{frame}
 
-	\subsection{Sensor de nivel de agua}
 		\begin{frame}
-			\frametitle{Sensor de nivel de agua}
+			\frametitle{Estructura}
+			\framesubtitle{Blocs l\`ogics}
 				\begin{itemize}
-					\item
-					{
-
-						Sensor de muy bajo coste
-
-					}
-					\item
-					{
-
-						Transistor NPN con resistencia de base variable
-
-					}
+					\item{Taules d'entrada (Look Up Table)}
+					\item{L\`ogica operativa per c\`alculs}
+					\item{Multiplexors}
+					\item{Biestables s\'incrons}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, totalheight=0.5\textheight]{figuras/sensor.jpg}
-					%\includegraphics[keepaspectratio = true, totalheight=0.5\textheight]{figuras/circuito.pdf}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
 				\end{figure}
 		\end{frame}
 
-\section{Soluci\'on}
-	\subsection{Sensor de nivel de agua -- FPGA}
 		\begin{frame}
-			\frametitle{Soluci\'on}
-			\framesubtitle{Sensor de nivel de agua -- FPGA}
+			\frametitle{Estructura}
+			\framesubtitle{Blocs d'entrada/sortida}
 				\begin{itemize}
-					\item
-					{
-
-						Conversor anal\'ogico -- digital de 10 bits: MCP3002
-
-					}
-					\item
-					{
-
-						Comunicaci\'on por SPI, con 3 bits para pedir informaci\'on
-
-					}
-					\item
-					{
-
-						Parte ya hecha como ejercicio de la asignatura
-
-					}
+					\item{Biestables s\'incrons}
+					\item{Control tri-estat: entrada, sortida o alta imped\`ancia}
+					\item{Connexi\'o amb el m\'on exterior}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, totalheight=0.6\textheight]{figuras/adc_spi.png}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
 				\end{figure}
- 		\end{frame}
-		\begin{frame}
-			\frametitle{Soluci\'on}
-			\framesubtitle{Sensor de nivel de agua -- FPGA}
-				\begin{figure}
-					%\includegraphics[keepaspectratio = true, totalheight=0.6\textheight]{figuras/adc_ok.png}
-				\end{figure}
- 		\end{frame}
+		\end{frame}
 
-	\subsection{FPGA -- red}
+	\subsection{Nuclis de propietat inte\l.lectual}
 		\begin{frame}
-			\frametitle{Soluci\'on}
-			\framesubtitle{FPGA -- red}
+			\frametitle{Nuclis de propietat intel·lectual}
+			\framesubtitle{}
 				\begin{itemize}
-					\item
-					{
-
-						Ethernet como interfaz f\'isico para comunicaci\'on TCP/IP con la red
-
-					}
-					\item
-					{
-
-						Capa de acceso al medio por Ethernet: n\'ucleo IP de Xilinx sobre MicroBlaze (n\'ucleo soft-core corriendo sobre Spartan6)
-
-					}
-					\item
-					{
-
-						LwIP como librer\'ia TCP/IP para sistemas embebidos, corriendo sobre MicroBlaze
-
-					}
-					\item
-					{
-
-						Partiendo de un ejemplo de Avnet, se programa un servidor web capaz de comunicarse con un cliente mediante WebSockets
-
-					}
-					\item
-					{
-
-						El c\'odigo necesita cargarse en la RAM LPDDR externa presente en la placa, de otra manera no cabe
-
-					}
-				\end{itemize}
-
- 		\end{frame}
-
-		\begin{frame}
-			\frametitle{Soluci\'on}
-			\framesubtitle{WebSockets}
-				\begin{itemize}
-					\item
-					{
-
-						Protocolo sobre TCP/IP que permite comunicaci\'on bidireccional as\'incrona entre cliente y servidor
-
-					}
-					\item
-					{
-
-						Comunicaci\'on muy eficiente, con s\'olo unos pocos bytes adicionales a la informaci\'on a transferir
-
-					}
+					\item{Implementacions en llenguatge de descripci\'o de hardware (generalment VHDL o Verilog)}
+					\item{Anomenats soft-cores}
+					\item{Exemples variats: perif\`eric SPI, microcontrolador sencer (MicroBlaze de Xilinx), convertidor digital-anal\`ogic, \ldots}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, totalheight=0.5\textheight]{figuras/ws_diagrama.png}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
 				\end{figure}
- 		\end{frame}
-		\begin{frame}
-			\frametitle{Soluci\'on}
-			\framesubtitle{WebSockets}
-				\begin{figure}
-					%\includegraphics[keepaspectratio = true, totalheight=0.6\textheight]{figuras/adc_web_ok.png}
-				\end{figure}
- 		\end{frame}
+		\end{frame}
 
-	\subsection{Resumen estructura software servidor}
 		\begin{frame}
-			\frametitle{Soluci\'on}
-			\framesubtitle{Resumen estructura software servidor}
+			\frametitle{Nuclis de propietat intel·lectual}
+			\framesubtitle{Disseny de hardware}
+				\begin{itemize}
+					\item{Cada fabricant ofereix les seves eines per generar hardware}
+					\item{En el cas de Xilinx, la eina \'es el Xilinx Platform Studio}
+				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, totalheight=0.7\textheight]{figuras/capas_server.png}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
 				\end{figure}
- 		\end{frame}
+				\begin{itemize}
+					\item{Un cop creat el hardware, si hi ha un microcontrolador o microprocessador s'ha de programar}
+				\end{itemize}
+		\end{frame}
 
-\section{Demostraci\'on}
+\section{Ethernet}
+	\subsection{Pila de protocol per capes}
 		\begin{frame}
-			\frametitle{Demostraci\'on}
+			\frametitle{Pila de protocol per capes}
+			\framesubtitle{}
+				\begin{itemize}
+					\item{Generalment les comunicacions en xarxes es regeixen pel model OSI (Open Systems Interconnection) de ISO}
+					\item{Aquest model organitza els protocols per capes: f\'isica, de xarxa, d'aplicaci\'o, \ldots}
+					\item{Cada capa rep dades de la inferior i subministra dades a la superior}
+				\end{itemize}
+				\begin{figure}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+				\end{figure}
+		\end{frame}
+
+	\subsection{Ethernet}
+		\begin{frame}
+			\frametitle{Ethernet}
+			\framesubtitle{Velocitats de connexi\'o}
+				\begin{itemize}
+					\item{}
+				\end{itemize}
+				\begin{figure}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+				\end{figure}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Ethernet}
+			\framesubtitle{Cablejat}
+				\begin{itemize}
+					\item{}
+				\end{itemize}
+				\begin{figure}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+				\end{figure}
+		\end{frame}
+
+	\subsection{Protocols}
+		\begin{frame}
+			\frametitle{Protocols}
+			\framesubtitle{Ethernet}
+				\begin{itemize}
+					\item{Aquest \'es un protocol senzill, on s'han d'enviar poques dades a m\'es de les que es volen transportar}
+				\end{itemize}
+				\begin{figure}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+				\end{figure}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Protocols}
+			\framesubtitle{IPv4}
+				\begin{itemize}
+					\item{Internet Protocol version 4}
+					\item{Protocol b\`asic per dirigir-se als equips d'una xarxa, sigui local o global}
+					\item{Imprescindible a la xarxa de xarxes}
+					\item{Relativament complicat perqu\`e ha de contemplar gran varietat de casos (fragmentaci\'o, diferents subprotocols, \ldots)}
+				\end{itemize}
+				\begin{figure}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+				\end{figure}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Protocols}
+			\framesubtitle{ARP}
+				\begin{itemize}
+					\item{Address Resolution Protocol}
+					\item{Protocol b\`asic per identificar els equips dins d'una xarxa local}
+					\item{Complement ideal entre IPv4 i Ethernet}
+				\end{itemize}
+				\begin{figure}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+				\end{figure}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Protocols}
+			\framesubtitle{ICMP}
+				\begin{itemize}
+					\item{Internet Control Message Protocol}
+					\item{Protocol que serveix per regular el tr\`afic, generalment, a la xarxa de xarxes}
+				\end{itemize}
+				\begin{figure}
+					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+				\end{figure}
+		\end{frame}
+
+\section{M\'es informaci\'o}
+		\begin{frame}
+			\frametitle{M\'es informaci\'o}
 			\vfill
 			M\'es informaci\'o i codi font a:
 			\url{https://github.com/markopesevski/TFM}
