@@ -16,6 +16,7 @@
 
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{multicol}
 
 \usepackage[amssymb]{SIunits}
 \usepackage{listings}
@@ -132,7 +133,9 @@
 
 \begin{frame}
     \frametitle{Taula de continguts}
+    \begin{multicols}{2}
     \tableofcontents
+    \end{multicols}
 \end{frame}
 
 \setcounter{framenumber}{0}
@@ -155,11 +158,11 @@
 			\framesubtitle{}
 				\begin{itemize}
 					\item{Matriu de blocs l\`ogics, interconnectats}
-					\item{Blocs d'entrada/sortida}
 					\item{Recursos d'interconnexi\'o}
+					\item{Blocs d'entrada/sortida}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.4\textwidth]{figures/fig29-1.jpg}
 				\end{figure}
 		\end{frame}
 
@@ -173,7 +176,19 @@
 					\item{Biestables s\'incrons}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figures/FPGA_cell_example.png}
+				\end{figure}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Estructura}
+			\framesubtitle{Recursos d'interconnexi\'o}
+				\begin{itemize}
+					\item{Permeten encaminar les connexions entre blocs l\`ogics i blocs d'entrada/sortida}
+					\item{Es tria l'estat dels interruptors al programar la FPGA}
+				\end{itemize}
+				\begin{figure}
+					\includegraphics[keepaspectratio = true, width=0.5\textwidth]{figures/Switch_box.png}
 				\end{figure}
 		\end{frame}
 
@@ -186,7 +201,7 @@
 					\item{Connexi\'o amb el m\'on exterior}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.7\textwidth]{figures/slide_21.png}
 				\end{figure}
 		\end{frame}
 
@@ -195,13 +210,11 @@
 			\frametitle{Nuclis de propietat intel·lectual}
 			\framesubtitle{}
 				\begin{itemize}
-					\item{Implementacions en llenguatge de descripci\'o de hardware (generalment VHDL o Verilog)}
-					\item{Anomenats soft-cores}
+					\item{Implementacions en llenguatge de descripci\'o de hardware (principalment VHDL o Verilog)}
+					\item{Generalment anomenats soft-cores}
+					\item{Existeixen els hard-cores, incrustats sobre el silici de la FPGA}
 					\item{Exemples variats: perif\`eric SPI, microcontrolador sencer (MicroBlaze de Xilinx), convertidor digital-anal\`ogic, \ldots}
 				\end{itemize}
-				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
-				\end{figure}
 		\end{frame}
 
 		\begin{frame}
@@ -212,32 +225,42 @@
 					\item{En el cas de Xilinx, la eina \'es el Xilinx Platform Studio}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.6\textwidth]{figures/vista_config_xps.png}
 				\end{figure}
 				\begin{itemize}
 					\item{Un cop creat el hardware, si hi ha un microcontrolador o microprocessador s'ha de programar}
 				\end{itemize}
 		\end{frame}
 
-\section{Ethernet}
-	\subsection{Pila de protocol per capes}
 		\begin{frame}
-			\frametitle{Pila de protocol per capes}
-			\framesubtitle{}
+			\frametitle{Nuclis de propietat intel·lectual}
+			\framesubtitle{Programaci\'o de software}
 				\begin{itemize}
-					\item{Generalment les comunicacions en xarxes es regeixen pel model OSI (Open Systems Interconnection) de ISO}
-					\item{Aquest model organitza els protocols per capes: f\'isica, de xarxa, d'aplicaci\'o, \ldots}
-					\item{Cada capa rep dades de la inferior i subministra dades a la superior}
+					\item{En el cas de Xilinx, \'es el Xilinx Software Development Kit}
+					\item{\'Es un entorn de desenvolupament complet, inclou eines per programar i depurar, llibreries, \ldots}
+					\item{Encara que admet llenguatge d'assemblador, la majoria es fa en C/C++}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.575\textwidth]{figures/xsdk_general.png}
 				\end{figure}
 		\end{frame}
 
-	\subsection{Ethernet}
+\section{Ethernet}
+	\subsection{Model de funcionament}
 		\begin{frame}
 			\frametitle{Ethernet}
-			\framesubtitle{Velocitats de connexi\'o}
+			\framesubtitle{Funcionament a la placa}
+				\begin{itemize}
+					\item{En general, tots els dispositius que implementen Ethernet funcionen de forma similar}
+				\end{itemize}
+				\begin{figure}
+					\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figures/sistema-ethernet.png}
+				\end{figure}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Ethernet}
+			\framesubtitle{Cablejat i velocitats}
 				\begin{itemize}
 					\item{}
 				\end{itemize}
@@ -250,22 +273,37 @@
 			\frametitle{Ethernet}
 			\framesubtitle{Cablejat}
 				\begin{itemize}
-					\item{}
+					\item{Parells diferencials trenats. Generalment al menys un de recepci\'o (RX$\pm$) i un de transmissi\'o (TX$\pm$)}
+					\item{Depenent de la velocitat de transmissi\'o requerida, es necessita cablejat diferent}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figures/category-cable-wiring.png}
 				\end{figure}
 		\end{frame}
 
 	\subsection{Protocols}
 		\begin{frame}
+			\frametitle{Pila de protocol per capes}
+			\framesubtitle{}
+				\begin{itemize}
+					\item{Generalment les comunicacions en xarxes es regeixen pel model OSI (Open Systems Interconnection) de ISO}
+					\item{Aquest model organitza els protocols per capes: f\'isica, de xarxa, d'aplicaci\'o, \ldots}
+					\item{Cada capa rep dades de la inferior i subministra dades a la superior}
+				\end{itemize}
+				\begin{figure}
+					\includegraphics[keepaspectratio = true, width=0.7\textwidth]{figures/ethernet.png}
+				\end{figure}
+		\end{frame}
+
+		\begin{frame}
 			\frametitle{Protocols}
 			\framesubtitle{Ethernet}
 				\begin{itemize}
-					\item{Aquest \'es un protocol senzill, on s'han d'enviar poques dades a m\'es de les que es volen transportar}
+					\item{Aquest \'es un protocol senzill, on s'han d'enviar poques dades a m\'es de les que es volen transportar (26 bytes + dades)}
+					\item{El pre\`ambul no \'es informaci\'o \'util com a tal, serveix per sincronitzar}
 				\end{itemize}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figures/trama_ethernet.png}
 				\end{figure}
 		\end{frame}
 
@@ -278,8 +316,13 @@
 					\item{Imprescindible a la xarxa de xarxes}
 					\item{Relativament complicat perqu\`e ha de contemplar gran varietat de casos (fragmentaci\'o, diferents subprotocols, \ldots)}
 				\end{itemize}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Protocols}
+			\framesubtitle{IPv4}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.65\textwidth]{figures/paquet_ipv4.png}
 				\end{figure}
 		\end{frame}
 
@@ -289,10 +332,15 @@
 				\begin{itemize}
 					\item{Address Resolution Protocol}
 					\item{Protocol b\`asic per identificar els equips dins d'una xarxa local}
-					\item{Complement ideal entre IPv4 i Ethernet}
+					\item{Complement ideal entre IPv4 i Ethernet per xarxes locals}
 				\end{itemize}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Protocols}
+			\framesubtitle{ARP}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.375\textwidth]{figures/paquet_arp.png}
 				\end{figure}
 		\end{frame}
 
@@ -302,11 +350,30 @@
 				\begin{itemize}
 					\item{Internet Control Message Protocol}
 					\item{Protocol que serveix per regular el tr\`afic, generalment, a la xarxa de xarxes}
+					\item{Serveix per notificar de p\`erdua de paquets, comprovar l'estat de la xarxa}
+					\item{Es pot utilitzar en xarxes locals per provar la capacitat de la xarxa}
 				\end{itemize}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Protocols}
+			\framesubtitle{ICMP}
 				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
+					\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figures/paquet_icmp.png}
 				\end{figure}
 		\end{frame}
+
+\section{Implementaci\'o pr\`actica}
+\subsection{LwIP}
+\subsection{Sense LwIP}
+
+\section{Resultats experimentals}
+\subsection{M\`etode d'estudi}
+\subsection{Cablejats diferents}
+\subsection{Sumes de verificaci\'o}
+\subsection{Mem\`oria d'execuci\'o}
+
+\section{Conclusions}
 
 \section{M\'es informaci\'o}
 		\begin{frame}
