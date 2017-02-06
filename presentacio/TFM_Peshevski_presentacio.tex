@@ -20,7 +20,7 @@
 
 \usepackage[amssymb]{SIunits}
 \usepackage{listings}
-\lstloadlanguages{VHDL, C}
+\lstloadlanguages{VHDL, C, bash}
 	\lstset
 	{
 		language=C, %-> choose the language of the code
@@ -383,24 +383,47 @@
 		\begin{frame}
 			\frametitle{Resultats experimentals}
 			\framesubtitle{M\`etode d'estudi}
+				\begin{itemize}
+					\item{S'executen gran nombre de peticions d'eco}
+					\item{Llarg\`aria de les dades del paquet ICMP variable}
+					\item{Automatitzat amb script de bash}
+				\end{itemize}
+				\lstinputlisting[language = bash, morekeywords={sudo, ping, sleep}]{codi/script.sh}
 		\end{frame}
 
 	\subsection{Cablejats diferents}
 		\begin{frame}
 			\frametitle{Resultats experimentals}
-			\framesubtitle{Cablejats diferents}
+			\framesubtitle{Implementacions sobre cablejats diferents - Cat3}
+				\begin{figure}
+					\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figures/cat3.pdf}
+				\end{figure}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Resultats experimentals}
+			\framesubtitle{Implementacions sobre cablejats diferents - Cat6}
+				\begin{figure}
+					\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figures/cat6.pdf}
+				\end{figure}
 		\end{frame}
 
 	\subsection{Sumes de verificaci\'o}
 		\begin{frame}
 			\frametitle{Resultats experimentals}
 			\framesubtitle{Sumes de verificaci\'o}
+				\begin{figure}
+					\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figures/checksums.pdf}
+				\end{figure}
 		\end{frame}
 
 	\subsection{Mem\`oria d'execuci\'o}
 		\begin{frame}
 			\frametitle{Resultats experimentals}
 			\framesubtitle{Mem\`oria d'execuci\'o}
+				\begin{figure}
+					\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figures/memories.pdf}
+				\end{figure}
 		\end{frame}
 
 \section{Conclusions}
