@@ -119,6 +119,7 @@
 	\subsection{Objectius}
 		\begin{frame}
 			\frametitle{Objectius}
+			\framesubtitle{}
 				\begin{itemize}
 					\item{Con\`eixer Ethernet en profunditat}
 					\item{Con\`eixer en profunditat alguns protocols de xarxes}
@@ -386,7 +387,7 @@
 				\begin{itemize}
 					\item{S'executen gran nombre de peticions d'eco}
 					\item{Llarg\`aria de les dades del paquet ICMP variable}
-					\item{Automatitzat amb script de bash}
+					\item{Automatitzat amb script de bash sobre Linux}
 				\end{itemize}
 				\lstinputlisting[language = bash, morekeywords={sudo, ping, sleep}]{codi/script.sh}
 		\end{frame}
@@ -431,15 +432,21 @@
 		\begin{frame}
 			\frametitle{Conclusions}
 			\framesubtitle{}
+				\begin{itemize}
+					\item{Ethernet $\rightarrow$ un protocol senzill a nivell de dades l\`ogiques}
+					\item{Protocols d'Internet $\rightarrow$ complexos, per contemplar gran varietat de casos}
+					\item{Protocols encapsulats dins de protocols $\rightarrow$ \`optim?}
+					\item{Pila de protocols estandarditzada (LwIP) \emph{vs.} pila feta a mida}
+					\item{La mem\`oria d'on s'executa el codi realment fa difer\`encia en un sistema tan senzill}
+				\end{itemize}
 		\end{frame}
 
 		\begin{frame}
 			\frametitle{M\'es informaci\'o}
 			\framesubtitle{}
-			\vfill
-			M\'es informaci\'o i codi font a:
-			\url{https://github.com/markopesevski/TFM}
-			\vfill
+				\begin{itemize}
+					\item{M\'es informaci\'o i codi font a: \url{https://github.com/markopesevski/TFM}}
+				\end{itemize}
  		\end{frame}
 
 %------------------------------------------------
