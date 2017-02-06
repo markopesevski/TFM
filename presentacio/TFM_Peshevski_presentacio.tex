@@ -20,38 +20,14 @@
 
 \usepackage[amssymb]{SIunits}
 \usepackage{listings}
-\lstloadlanguages{VHDL}
-	% \lstset
-	% {
-	% 	language=C, %-> choose the language of the code
-	% 	basicstyle=\scriptsize,% -> the size of the fonts used for the code
-	% 	numbers=left,% -> where to put the line-numbers
-	% 	numberstyle=\tiny,% -> size of the fonts used for the line-numbers
-	% 	stepnumber=1,% -> the step between two line-numbers.
-	% 	numbersep=10pt,% -> how far the line-numbers are from the code
-	% 	% backgroundcolor=\color[rgb]{0.95, 0.95, 0.95},% -> sets background color (needs package)
-	% 	showspaces=false,% -> show spaces adding particular underscores
-	% 	showstringspaces=false,% -> underline spaces within strings
-	% 	showtabs=false,% -> show tabs within strings through particular underscores
-	% 	% frame=single,% -> adds a frame around the code
-	% 	tabsize=2,% -> sets default tab-size to 2 spaces
-	% 	captionpos=t,% -> sets the caption-position to top
-	% 	breaklines=true,% -> sets automatic line breaking
-	% 	breakatwhitespace=true,% -> automatic breaks happen at whitespace
-	% 	keywordstyle=\color{blue},
-	% 	linewidth=0.95\textwidth,
-	% 	xleftmargin=0.05\textwidth,
-	% 	xrightmargin=0\textwidth,
-	% 	morekeywords={define, byte, millis, map, analogRead, delay, boolean},
-	% 	extendedchars=true,
-	% 	commentstyle=\color[rgb]{0.1,0.5,0.1}
-	% }
+\lstloadlanguages{VHDL, C}
 	\lstset
 	{
-		language=, %-> choose the language of the code
-		basicstyle={\scriptsize},% -> the size of the fonts used for the code \color[rgb]{0.95,0.95,0.95}
-		numbers=left,% -> where to put the line-numbers
-		numberstyle={\tiny},% -> size of the fonts used for the line-numbers
+		language=C, %-> choose the language of the code
+		%basicstyle=\scriptsize,% -> the size of the fonts used for the code
+		basicstyle=\tiny,% -> the size of the fonts used for the code
+		numbers=none,% -> where to put the line-numbers
+		numberstyle=\tiny,% -> size of the fonts used for the line-numbers
 		stepnumber=1,% -> the step between two line-numbers.
 		numbersep=10pt,% -> how far the line-numbers are from the code
 		% backgroundcolor=\color[rgb]{0.95, 0.95, 0.95},% -> sets background color (needs package)
@@ -59,17 +35,17 @@
 		showstringspaces=false,% -> underline spaces within strings
 		showtabs=false,% -> show tabs within strings through particular underscores
 		% frame=single,% -> adds a frame around the code
-		tabsize=2,% -> sets default tab-size to 2 spaces
+		tabsize=1,% -> sets default tab-size to 2 spaces
 		captionpos=t,% -> sets the caption-position to top
 		breaklines=true,% -> sets automatic line breaking
 		breakatwhitespace=true,% -> automatic breaks happen at whitespace
 		keywordstyle=\color{blue},
-		linewidth=0.95\textwidth,
-		xleftmargin=0.05\textwidth,
+		linewidth=\textwidth,
+		xleftmargin=0\textwidth,
 		xrightmargin=0\textwidth,
-		morekeywords={std_logic, std_logic_vector, integer, rising_edge, to_integer, unsigned, to_unsigned},
+		morekeywords={define, byte, millis, map, analogRead, delay, boolean},
 		extendedchars=true,
-		commentstyle=\color[rgb]{0.1,0.5,0.1}
+		commentstyle={\color[rgb]{0.1,0.5,0.1}}
 	}
 
 % TEST AREA
@@ -260,17 +236,6 @@
 
 		\begin{frame}
 			\frametitle{Ethernet}
-			\framesubtitle{Cablejat i velocitats}
-				\begin{itemize}
-					\item{}
-				\end{itemize}
-				\begin{figure}
-					%\includegraphics[keepaspectratio = true, width=0.9\textwidth]{figura.png}
-				\end{figure}
-		\end{frame}
-
-		\begin{frame}
-			\frametitle{Ethernet}
 			\framesubtitle{Cablejat}
 				\begin{itemize}
 					\item{Parells diferencials trenats. Generalment al menys un de recepci\'o (RX$\pm$) i un de transmissi\'o (TX$\pm$)}
@@ -364,20 +329,90 @@
 		\end{frame}
 
 \section{Implementaci\'o pr\`actica}
-\subsection{LwIP}
-\subsection{Sense LwIP}
+	\subsection{LwIP}
+		\begin{frame}
+			\frametitle{Implementaci\'o pr\`actica}
+			\framesubtitle{LwIP}
+				\begin{itemize}
+					\item{LwIP \'es una de les implementacions de TCP/IP m\'es utilitzades}
+					\item{Pila espec\'ificament dissenyada per aplicacions incrustades}
+					\item{Microcontroladors amb poca mem\`oria de codi (ocupa al voltant de 40 kilobytes per si sola)}
+					\item{No necessita de molta mem\`oria RAM, sempre en funci\'o de les demandes de la xarxa i l'aplicaci\'o}
+					\item{Pila de protocols molt capa\c c, suporta la majoria de protocols utilitzats a Internet}
+				\end{itemize}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Implementaci\'o pr\`actica}
+			\framesubtitle{LwIP}
+				\lstinputlisting[language = C, morekeywords = {xil_printf, inicialitza_temporitzador, inicialitza_interrupcions, inicialitza_lwip, arrenca_app, xemacif_input, tcp_fasttmr, tcp_slowtmr, Xil_ExceptionEnable}]{codi/lwip_main.c}
+		\end{frame}
+
+	\subsection{Sense LwIP}
+		\begin{frame}
+			\frametitle{Implementaci\'o pr\`actica}
+			\framesubtitle{Sense LwIP}
+				\begin{itemize}
+					\item{Implementaci\'o feta per l'autor}
+					\item{Pila de protocols molt redu\"ida: ARP, i ICMP sobre IPv4 (sense fragmentaci\'o)}
+					\item{Intent d'optimitzar el m\`axim possible tant la mem\`oria ocupada pel codi com la velocitat d'execuci\'o}
+					\item{B\`asicament capa\c c de respondre a peticions d'eco i poc m\'es}
+				\end{itemize}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Implementaci\'o pr\`actica}
+			\framesubtitle{Sense LwIP}
+				\lstinputlisting[language = C, morekeywords = {xil_printf, inicialitza_temporitzador, inicialitza_interrupcions, inicialitza_lwip, inicialitza_emaclite, arrenca_app, xemacif_input, tcp_fasttmr, tcp_slowtmr, Xil_ExceptionEnable, memcpy}]{codi/sense_lwip_main.c}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Implementaci\'o pr\`actica}
+			\framesubtitle{Sense LwIP}
+				\lstinputlisting[language = C, morekeywords = {xil_printf, inicialitza_temporitzador, inicialitza_interrupcions, inicialitza_lwip, inicialitza_emaclite, arrenca_app, xemacif_input, tcp_fasttmr, tcp_slowtmr, Xil_ExceptionEnable, memcpy}]{codi/sense_lwip_arp.c}
+		\end{frame}
+
+		\begin{frame}
+			\frametitle{Implementaci\'o pr\`actica}
+			\framesubtitle{Sense LwIP}
+				\lstinputlisting[language = C, morekeywords = {xil_printf, inicialitza_temporitzador, inicialitza_interrupcions, inicialitza_lwip, inicialitza_emaclite, arrenca_app, xemacif_input, tcp_fasttmr, tcp_slowtmr, Xil_ExceptionEnable, memcpy}]{codi/sense_lwip_icmp.c}
+		\end{frame}
 
 \section{Resultats experimentals}
-\subsection{M\`etode d'estudi}
-\subsection{Cablejats diferents}
-\subsection{Sumes de verificaci\'o}
-\subsection{Mem\`oria d'execuci\'o}
+	\subsection{M\`etode d'estudi}
+		\begin{frame}
+			\frametitle{Resultats experimentals}
+			\framesubtitle{M\`etode d'estudi}
+		\end{frame}
+
+	\subsection{Cablejats diferents}
+		\begin{frame}
+			\frametitle{Resultats experimentals}
+			\framesubtitle{Cablejats diferents}
+		\end{frame}
+
+	\subsection{Sumes de verificaci\'o}
+		\begin{frame}
+			\frametitle{Resultats experimentals}
+			\framesubtitle{Sumes de verificaci\'o}
+		\end{frame}
+
+	\subsection{Mem\`oria d'execuci\'o}
+		\begin{frame}
+			\frametitle{Resultats experimentals}
+			\framesubtitle{Mem\`oria d'execuci\'o}
+		\end{frame}
 
 \section{Conclusions}
+\subsection*{}
+		\begin{frame}
+			\frametitle{Conclusions}
+			\framesubtitle{}
+		\end{frame}
 
-\section{M\'es informaci\'o}
 		\begin{frame}
 			\frametitle{M\'es informaci\'o}
+			\framesubtitle{}
 			\vfill
 			M\'es informaci\'o i codi font a:
 			\url{https://github.com/markopesevski/TFM}
